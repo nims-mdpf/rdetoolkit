@@ -15,6 +15,10 @@ set_custom_fields          string, other or no format  value unchanged          
 set_custom_fields          None / NaN / NaT            stored as None                      GA603-EP-007
 set_custom_fields          pd.NA / NumPy NaN / NaT     stored as None                      GA603-EP-019
 set_custom_fields          NumPy scalars               cast as the Python value            GA603-EP-020
+set_custom_fields          empty string (default)      not applied, key left as is (#619)  GA603-EP-021
+set_custom_fields          keep_empty_strings=True     "" kept for string, else error      GA603-EP-022
+set_custom_fields          empty string, undeclared    StructuredError code 1              GA603-EP-023
+set_custom_fields          non-string for plain string kept as given (#619 decision)       GA603-EP-024
 set_custom_fields          undeclared key              StructuredError code 1              GA603-EP-008
 set_custom_fields          uncastable value            StructuredError code 1, v1 message  GA603-EP-009
 set_custom_fields          unparseable date / object   StructuredError code 1, chained     GA603-EP-010
@@ -36,13 +40,14 @@ API                        Boundary                    Expected                 
 =========================  ==========================  ==================================  ================
 set_custom_fields          empty updates               equal copy, input untouched         GA603-BV-001
 set_custom_fields          existing vs new key         order kept, new key appended        GA603-BV-002
-set_custom_fields          empty string for integer    StructuredError (v1)                GA603-BV-003
+set_custom_fields          "" / whitespace for integer not applied; error if kept (v1)     GA603-BV-003
 set_custom_fields          missing custom section      section created                     GA603-BV-004
 set_custom_fields          integral vs fractional 3.x  int vs error for integer            GA603-BV-005
 resolve_custom_key         ja == en on one key         one match, not ambiguous            GA603-BV-006
 resolve_custom_key         surrounding whitespace      stripped before comparison          GA603-BV-007
 resolve_custom_key         schema without custom       StructuredError (unknown)           GA603-BV-008
 set_custom_fields          numpy_nullable Excel row    saved invoice.json, blanks null     GA603-BV-009
+set_custom_fields          dtype=str Excel row         blanks skipped, text kept as typed  GA603-BV-010
 =========================  ==========================  ==================================  ================
 """
 
@@ -173,7 +178,7 @@ class TestCastBySchemaType:
         # Then: the text equals the text of the same date given as a string
         assert actual == expected
 
-    @pytest.mark.parametrize(("key", "value"), [("operator", "Taro"), ("operator", ""), ("operator", 5), ("link", "https://example.org/a"), ("xrd", "  padded ")])
+    @pytest.mark.parametrize(("key", "value"), [("operator", "Taro"), ("operator", 5), ("link", "https://example.org/a"), ("xrd", "  padded ")])
     def test_string_unchanged__ga603_ep_006(self, key: str, value: Any) -> None:
         """GA603-EP-006: strings without a date format are stored unchanged."""
         # Given: a plain string field or a uri-formatted one
@@ -251,7 +256,7 @@ class TestCastFailures:
         assert str(error) == f"Value for invoice.json field 'custom.{key}' does not match the type defined in invoice.schema.json (expected: {expected_type})."
         assert isinstance(error.__cause__, StructuredError)
 
-    @pytest.mark.parametrize(("key", "value", "cause"), [("measured_date", "not a date", ValueError), ("measured_date", "", ValueError), ("start_time", 12, TypeError), ("measured_at", dt.time(1, 2), TypeError)])
+    @pytest.mark.parametrize(("key", "value", "cause"), [("measured_date", "not a date", ValueError), ("start_time", 12, TypeError), ("measured_at", dt.time(1, 2), TypeError)])
     def test_unparseable_date__ga603_ep_010(self, key: str, value: Any, cause: type[Exception]) -> None:
         """GA603-EP-010: date parser failures become the same StructuredError."""
         # Given/When: a value dateutil cannot parse (v1 leaked the parser error)
@@ -342,13 +347,19 @@ class TestUpdateBoundaries:
         # Then: invoice.json key order is preserved
         assert list(custom) == ["operator", "count", "power"]
 
-    def test_empty_string_integer__ga603_bv_003(self) -> None:
-        """GA603-BV-003: an empty string is a value, not a missing cell (v1)."""
-        # Given/When: an empty string for an integer field
-        error = _cast_error({"count": ""})
-        # Then: the v1 type mismatch is reported
-        assert error.ecode == 1
-        assert "(expected: integer)" in str(error)
+    @pytest.mark.parametrize("value", ["", "  ", "\t\n"])
+    def test_empty_string_integer__ga603_bv_003(self, value: str) -> None:
+        """GA603-BV-003: a blank integer cell is skipped by default; kept, it is the v1 type mismatch."""
+        # Given: an integer field holding a value
+        invoice = _invoice({"count": 1})
+        # When: setting an empty or whitespace-only string, by default and with keep_empty_strings=True
+        skipped = set_custom_fields(invoice, {"count": value}).raw["custom"]
+        with pytest.raises(StructuredError) as info:
+            set_custom_fields(invoice, {"count": value}, keep_empty_strings=True)
+        # Then: the default leaves the old value; keeping the string reports the v1 mismatch
+        assert skipped == {"count": 1}
+        assert info.value.ecode == 1
+        assert "(expected: integer)" in str(info.value)
 
     def test_missing_custom_section__ga603_bv_004(self) -> None:
         """GA603-BV-004: an invoice without a custom section receives one."""
@@ -431,6 +442,69 @@ class TestResolveCustomKey:
             set_custom_fields(_invoice({}, schema=schema), {"x": "1"})
 
 
+class TestEmptyStrings:
+    ALL_KEYS = ("count", "power", "enabled", "measured_date", "measured_at", "start_time", "link", "operator")
+
+    @pytest.mark.parametrize("value", ["", " ", "\u3000", np.str_("")], ids=["empty", "space", "ideographic-space", "np.str_"])
+    @pytest.mark.parametrize("key", ALL_KEYS)
+    def test_default_not_applied__ga603_ep_021(self, key: str, value: str) -> None:
+        """GA603-EP-021: an empty string after stripping is not applied, as in build_meta (#619)."""
+        # Given: one invoice where the field holds a value and one where it is absent
+        held = _invoice({key: "old", "xrd": "x"})
+        absent = _invoice({"xrd": "x"})
+        # When: setting an empty string with the default
+        kept = set_custom_fields(held, {key: value, "count": "2"} if key != "count" else {key: value}).raw["custom"]
+        untouched = set_custom_fields(absent, {key: value}).raw["custom"]
+        # Then: the old value stays, an absent key is not added, other updates still apply
+        assert kept[key] == "old"
+        assert untouched == {"xrd": "x"}
+        if key != "count":
+            assert kept["count"] == 2
+
+    @pytest.mark.parametrize(("key", "value"), [("operator", ""), ("operator", "  "), ("link", ""), ("xrd", "\t")])
+    def test_keep_stores_string__ga603_ep_022(self, key: str, value: str) -> None:
+        """GA603-EP-022: keep_empty_strings=True stores the string unchanged for string fields."""
+        # Given/When: a blank string for a string field without a date format, kept
+        custom = set_custom_fields(_invoice({key: "old"}), {key: value}, keep_empty_strings=True).raw["custom"]
+        # Then: the string replaces the old value as given
+        assert custom[key] == value
+
+    @pytest.mark.parametrize(("key", "expected_type"), [("count", "integer"), ("power", "number"), ("enabled", "boolean"), ("measured_date", "string"), ("measured_at", "string"), ("start_time", "string")])
+    def test_keep_typed_fields_raise__ga603_ep_022(self, key: str, expected_type: str) -> None:
+        """GA603-EP-022: keep_empty_strings=True raises the type mismatch for typed and date fields."""
+        # Given/When: an empty string kept for a field that cannot hold it
+        with pytest.raises(StructuredError) as info:
+            set_custom_fields(_invoice({}), {key: ""}, keep_empty_strings=True)
+        # Then: the v1 message and code 1
+        assert info.value.ecode == 1
+        assert f"'custom.{key}'" in str(info.value)
+        assert f"(expected: {expected_type})" in str(info.value)
+
+    def test_undeclared_key_still_rejected__ga603_ep_023(self) -> None:
+        """GA603-EP-023: an empty value does not hide an undeclared key."""
+        # Given/When: an empty string under a key the schema does not declare
+        error = _cast_error({"unknown_key": ""})
+        # Then: the undeclared-key error, as for any other value
+        assert error.ecode == 1
+        assert str(error) == "Field 'custom.unknown_key' is not defined in invoice.schema.json."
+
+    def test_cast_false_stores_empty_string(self) -> None:
+        """GA603-EP-014: cast=False stays verbatim, so empty strings are stored."""
+        # Given/When: an empty string without casting
+        custom = set_custom_fields(_invoice({"count": 1}, schema=None), {"count": ""}, cast=False).raw["custom"]
+        # Then: the empty string is stored as given
+        assert custom == {"count": ""}
+
+    @pytest.mark.parametrize("value", [1.5, 3, True, ["a"]])
+    def test_non_string_kept_for_plain_string__ga603_ep_024(self, value: Any) -> None:
+        """GA603-EP-024: a string field without format keeps non-string values (v1 castval, #619 decision)."""
+        # Given/When: a non-string value for a string field without format
+        actual = _custom({"operator": value})["operator"]
+        # Then: the value is stored unconverted
+        assert actual == value
+        assert type(actual) is type(value)
+
+
 class TestSpreadsheetRoundTrip:
     def test_numpy_nullable_excel_row_saved__ga603_bv_009(self, tmp_path: Path, output_context: OutputContext) -> None:
         """GA603-BV-009: a nullable Excel row with blank cells is cast and saved."""
@@ -448,6 +522,24 @@ class TestSpreadsheetRoundTrip:
         # Then: the saved invoice holds the cast values and null for the blank cells
         custom = json.loads(path.read_text(encoding="utf-8"))["custom"]
         assert custom == {"count": 3, "power": None, "enabled": None, "operator": None, "measured_date": "2023-07-19"}
+
+    def test_text_excel_row_saved__ga603_bv_010(self, tmp_path: Path, output_context: OutputContext) -> None:
+        """GA603-BV-010: a row read as text skips blank cells and keeps the digits as typed (#619)."""
+        # Given: a workbook row with text cells and blank cells, read as text without NaN conversion
+        workbook = tmp_path / "custom.xlsx"
+        pd.DataFrame(
+            {"回数": ["3"], "出力": [""], "有効": [""], "測定者": ["1.50"], "測定日": [""]},
+        ).to_excel(workbook, index=False)
+        frame = read_excel(workbook, dtype=str, keep_default_na=False)
+        row = {label: frame[label].iloc[0] for label in frame.columns}
+        assert row["出力"] == ""
+        # When: mapping labels to keys, casting by schema, and saving over an invoice with old values
+        updates = {resolve_custom_key(SCHEMA, label): value for label, value in row.items()}
+        invoice = _invoice({"count": 1, "power": 2.0, "enabled": True, "operator": "A", "measured_date": "2020-01-01"})
+        path = save_invoice(set_custom_fields(invoice, updates), output_context)
+        # Then: blank cells leave the old values; the text cell keeps its significant digits
+        custom = json.loads(path.read_text(encoding="utf-8"))["custom"]
+        assert custom == {"count": 3, "power": 2.0, "enabled": True, "operator": "1.50", "measured_date": "2020-01-01"}
 
 
 class TestNodeAndProperties:

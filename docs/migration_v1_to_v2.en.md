@@ -152,9 +152,23 @@ To update `invoice.custom` as v1 `castval` / `_assign_invoice_val` did, use
 | `string` + `date` / `date-time` / `time` | text dateutil can parse, `date` / `datetime` objects | `2023-07-19` / ISO 8601 / `13:04:05` |
 | `string`, other or no format | anything | unchanged |
 | any type | `None`, NaN, `NaT`, `pd.NA` (NumPy NaN / NaT included) | `None` |
+| any type | `""` or whitespace only | not applied: the key keeps its value (#619) |
 
 Blank cells read with `dtype_backend="numpy_nullable"` (`pd.NA`) are also stored as `None`. NumPy
 scalars (such as `np.int64`) are cast as the equal Python value, so the result saves with `save_invoice`.
+
+An empty or whitespace-only string, such as a blank cell read with
+`read_excel(..., dtype=str, keep_default_na=False)`, is not applied: the key keeps
+its current value in `custom` or stays absent, as `build_meta` omits empty strings.
+`keep_empty_strings=True` casts it like any other value: a `string` field without
+a date format stores it, and `integer` / `number` / `boolean` and the date formats
+raise the type mismatch.
+
+A `string` field without format keeps a non-string value as given, as v1 `castval`
+did. Such a value fails the invoice validation after processing
+(`1.5 is not of type 'string'`, ErrorCode 4001), so convert it deliberately. To
+keep the digits as entered (`1.50`), read the cell as text
+(`read_excel(..., dtype=str)` / `read_csv(..., dtype=str)`): `str(1.5)` gives `1.5`.
 
 An undeclared key or a value that does not fit raises `StructuredError` (code 1);
 a type mismatch uses v1's message. Pass
@@ -681,7 +695,7 @@ rows. A workbook missing its invoice sheet keeps its existing error contract.
 | Exit code of the `rdetoolkit run` CLI | v1 had no `run` command | `0` success / `1` failed / `2` partially failed / `3` usage error. The v1 callback Python entry retains `SystemExit(1)` on failure. The flow Python entry opts into `1` failed / `2` partial with `exit_on_failure=True`, or exposes the same mapping as `RunReport.exit_code` |
 | `multidata_tile.ignore_errors: true` and every tile fails | MultiDataTile only: returns JSON with every entry `failed`, exit code 0. Other modes ignore the flag and stop at the first failure | The v1 callback entry point behaves as v1 in all modes. On the flow entry point, all tiles failing is `failed` and `job.failed` is written |
 | `rde2util.Meta.assign_vals` receives a `None` value (#570) | `None` is converted as the string `"None"`. A `number` / `integer` / `boolean` field raises `StructuredError` (`ERROR: failed to cast metaDef value` or similar). If the callback does not catch it, `job.failed` has `ErrorCode=1` and the later outputs, such as `metadata.json`, are not created. A `string` field is written as the value `"None"`, and a `$`-referenced unit as `"unit": "None"` | The key is not assigned, and `metadata.json` is written without it (without `unit` for a referenced unit). The callback's other outputs are created as usual. A value other than `None` that cannot be converted is still `ErrorCode=1` |
-| Casting `invoice.custom` values: v1 `castval` / `_assign_invoice_val` vs v2 `set_custom_fields` (#603) | Up to v1.7.1, a `string` field with format `uri` / `uuid` / `markdown` is parsed as a date and fails (fixed by #622 in v1.7.2 and v2). An unparseable date, or a non-text value for a date format, raises dateutil's `ValueError` / `TypeError`. `None` for a `boolean` field becomes `False`; for `integer` / `number` it fails. An undeclared key raises `KeyError`. An integral float such as `3.0` fails for `integer` | Formats other than `date` / `date-time` / `time` keep the value. Every mismatch is `StructuredError` (code 1) with v1's message, chained to the cause. `None`, NaN, `NaT` and `pd.NA` (NumPy NaN / NaT included) are stored as `None` for every type, and NumPy scalars are cast as their Python value. An undeclared key is `StructuredError` (code 1). `3.0` becomes `3`; `date` / `datetime` objects are accepted. Apart from the #622 fix, which `castval` shares with `set_custom_fields`, the v1 functions themselves are unchanged |
+| Casting `invoice.custom` values: v1 `castval` / `_assign_invoice_val` vs v2 `set_custom_fields` (#603) | Up to v1.7.1, a `string` field with format `uri` / `uuid` / `markdown` is parsed as a date and fails (fixed by #622 in v1.7.2 and v2). An unparseable date, or a non-text value for a date format, raises dateutil's `ValueError` / `TypeError`. `None` for a `boolean` field becomes `False`; for `integer` / `number` it fails. An undeclared key raises `KeyError`. An integral float such as `3.0` fails for `integer` | Formats other than `date` / `date-time` / `time` keep the value. Every mismatch is `StructuredError` (code 1) with v1's message, chained to the cause. `None`, NaN, `NaT` and `pd.NA` (NumPy NaN / NaT included) are stored as `None` for every type, and NumPy scalars are cast as their Python value. An empty or whitespace-only string is not applied (v1 stored `""` for a `string` field and failed for the other types; `keep_empty_strings=True` restores that, #619). An undeclared key is `StructuredError` (code 1). `3.0` becomes `3`; `date` / `datetime` objects are accepted. Apart from the #622 fix, which `castval` shares with `set_custom_fields`, the v1 functions themselves are unchanged |
 | A callback or flow writes the run-level invoice (`paths.invoice_org`; `temp/invoice_org.json` in MultiDataTile / ExcelInvoice / RDEformat) during processing (#603) | Later tiles were built from the edited file, so a value written by an earlier tile carried over to later ones, depending on tile order | Not supported. `paths.invoice_org` is read-only input. The Runner seeds every tile's invoice from the registration invoice (ExcelInvoice and SmartTable overlay their row), and a flow overrides tile-specific values with `save_invoice`. Each tile starts from the registration state; v2 does not define whether a write to `invoice_org` reaches later tiles |
 
 The `Meta.assign_vals` row is a bug fix in the Tier 1 API, so it also applies on the
