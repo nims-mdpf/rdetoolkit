@@ -965,6 +965,16 @@ WARNING_CATALOG[1102] = WarningDef(
 )
 
 
+ERROR_CATALOG[3008] = ErrorDef(
+    name="RunRootBusy",
+    message_template="The run was refused before writing anything: {reason}.",
+    remediation=(
+        "Wait for the other run on this data root to finish, or give each concurrent run "
+        "its own data root. Nothing of the refused run was written."
+    ),
+)
+
+
 # --- invoice custom-field helpers (#621): raised by rdetoolkit.nodes.invoice as
 #     StructuredError(ecode=<code>), so a flow-level error_code does not remap them ---
 ERROR_CATALOG[4011] = ErrorDef(
