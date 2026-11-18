@@ -207,8 +207,8 @@ src/rdetoolkit/core.cpython-*.so
 # Machine-generated codex/agmsg hook config (absolute local paths)
 .codex/
 
-# test-suite cwd leak artifacts (see merge_v1 debt: data/ pollution)
-data/logs/
+# test-suite cwd leak artifacts: v1 tests write to ./data at the repo root (#771)
+/data/
 
 # Migration skill executable helpers are not Windows virtualenv scripts.
 !/.agents/skills/rdetoolkit-v1-migration/scripts/
