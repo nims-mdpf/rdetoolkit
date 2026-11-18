@@ -20,7 +20,7 @@ class ResolutionContext:
     rawfiles: tuple[Path, ...] = ...
     iteration_index: int = ...
     mode: str = ...
-    schema_version: str = field(init=False, default=...)
+    schema_version: str = field(init=False, default="1")
     @classmethod
     def from_sources(
         cls,
@@ -57,7 +57,7 @@ class ResolutionDiagnostic:
 @dataclass(frozen=True, slots=True)
 class ResolutionPreview:
     diagnostics: tuple[ResolutionDiagnostic, ...]
-    schema_version: str = field(init=False, default=...)
+    schema_version: str = field(init=False, default="1")
     def to_dict(self) -> dict[str, Any]: ...
 
 def resolve_invoice(

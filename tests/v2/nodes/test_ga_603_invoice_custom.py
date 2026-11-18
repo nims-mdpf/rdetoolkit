@@ -289,7 +289,7 @@ class TestCastFailures:
 
     def test_no_schema__ga603_ep_012(self) -> None:
         """GA603-EP-012: casting requires a schema from the argument or the invoice."""
-        # Given: an invoice without a schema, as injected in invoice mode
+        # Given: an invoice built without a schema (the Runner always injects one, #620)
         invoice = _invoice({}, schema=None)
         # When/Then: casting without schema= fails as a usage error
         with pytest.raises(ValueError, match="No invoice schema"):

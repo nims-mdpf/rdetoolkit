@@ -268,6 +268,7 @@ def _print_explanation(payload: dict[str, Any]) -> None:
     for tile in payload["tiles"]:
         typer.echo(f"  {tile['index']}: {', '.join(tile['input_names']) or '(no raw files)'}")
     _print_magic_preview(payload["magic_preview"])
+    _print_graph_preview(payload["graph_preview"])
     for warning in payload["warnings"]:
         typer.echo(f"Warning: {warning}")
 
@@ -285,6 +286,21 @@ def _print_magic_preview(magic: dict[str, Any]) -> None:
     if magic["status"] != "not_applicable":
         typer.echo(f"  Checked: {', '.join(magic['checks'])}")
         typer.echo(f"  Not checked: {', '.join(magic['not_checked'])}")
+
+
+def _print_graph_preview(graph: dict[str, Any]) -> None:
+    typer.echo(f"Graph preview: {graph['status']} ({graph['reason']})")
+    for tile in graph["tiles"]:
+        for item in tile["files"]:
+            reader = f" -> {item['reader']}" if item["reader"] is not None else ""
+            shape = f", {item['column_count']} column(s)" if item["column_count"] is not None else ""
+            typer.echo(f"  tile {tile['index']} {item['name']}: {item['status']}{reader} ({item['reason']}{shape})")
+            if item["status"] == "ambiguous":
+                candidates = ", ".join(f"{c['reader_id']} {c['confidence']:.2f}" for c in item["candidates"]) or "none"
+                typer.echo(f"    Candidates: {candidates}. Remedy: name the reader with csv_format=<id> or --csv-format <id>.")
+    if graph["status"] != "no_tabular_inputs":
+        typer.echo(f"  Checked: {', '.join(graph['checks'])}")
+        typer.echo(f"  Not checked: {', '.join(graph['not_checked'])}")
 
 
 def run_flow(

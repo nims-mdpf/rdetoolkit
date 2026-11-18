@@ -1,0 +1,19 @@
+# mypy.stubtest allowlist for tests/v2/test_qa01_stub_contracts.py (#736).
+# Every entry is a stubtest false positive or a module internal that the stub
+# deliberately omits. Unused entries fail the check, so this list cannot rot.
+
+# str-mixin Enum: stubtest compares the stub's inherited str.__new__ with the
+# runtime Enum.__new__.
+rdetoolkit\.graph\.models\.(CSVFormat|Direction|PlotMode)\.__new__
+rdetoolkit\.domain\.mode_selection\.ModeKind\.__new__
+rdetoolkit\.modes\.stages\.ArtifactStage\.__new__
+
+# Literal[...] type aliases: stubtest expects a runtime typing.Union.
+rdetoolkit\.graph\.spec\.Origin
+rdetoolkit\.graph\.result\.ArtifactRole
+rdetoolkit\.graph\.legend_policy\.(LegendPolicy|ResolvedLegendPolicy)
+rdetoolkit\.graph\.readers\.base\.ColumnSource
+
+# Module internals that are not part of the typed surface.
+rdetoolkit\.graph\.renderers\.matplotlib_renderer\.(CENTER_POSITION|DEFAULT_OUTSIDE_LEGEND_NCOL|LEGEND_RIGHT_THRESHOLD|OUTSIDE_LEGEND_MARGIN_INCHES|TEXT_Y_THRESHOLD)
+rdetoolkit\.modes\.smarttable\.logger

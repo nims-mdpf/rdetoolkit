@@ -410,6 +410,13 @@ def test_first_table_wins_and_no_rawfile_is_none__tc_i6_c_bv_078() -> None:
     assert _original_smarttable_file(()) is None
 
 
+def _schema_file(root: Path) -> Path:
+    schema_path = root / "tasksupport" / "invoice.schema.json"
+    schema_path.parent.mkdir(parents=True, exist_ok=True)
+    schema_path.write_text(json.dumps({"properties": {}}), encoding="utf-8")
+    return schema_path
+
+
 @pytest.mark.parametrize(
     "table_name",
     ["smarttable_experiment_data.xlsx", "smarttable_results.csv", "smarttable_measurements.tsv"],
@@ -432,6 +439,7 @@ def test_early_exit_invoice_renames_only_the_data_name__tc_i6_c_ev_079(tmp_path:
         table=Path("/data/inputdata") / table_name,
         invoice_dir=invoice_dir,
         invoice_org=tmp_path / "absent-source.json",
+        schema_path=_schema_file(tmp_path),
     )
 
     # Then: only the dataName differs, on disk and in the returned invoice
@@ -451,7 +459,12 @@ def test_early_exit_invoice_seeds_an_absent_tile_invoice__tc_i6_c_ev_080(tmp_pat
     invoice_dir = tmp_path / "divided" / "0001" / "invoice"
 
     # When: the EarlyExit invoice is published
-    _early_exit_invoice(table=Path("/data/inputdata/smarttable_seed.csv"), invoice_dir=invoice_dir, invoice_org=source)
+    _early_exit_invoice(
+        table=Path("/data/inputdata/smarttable_seed.csv"),
+        invoice_dir=invoice_dir,
+        invoice_org=source,
+        schema_path=_schema_file(tmp_path),
+    )
 
     # Then: the tile invoice is the source with the table's name; the source is untouched
     assert json.loads((invoice_dir / "invoice.json").read_text(encoding="utf-8")) == {

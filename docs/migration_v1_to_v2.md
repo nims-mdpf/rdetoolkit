@@ -156,9 +156,9 @@ format のない `string` 項目は、文字列以外の値も v1 の `castval` 
 (`read_excel(..., dtype=str)` / `read_csv(..., dtype=str)`)。`str(1.5)` は `1.5` になります。
 
 スキーマにないキーはコード 4011(`InvoiceCustomKeyUndefined`)の `StructuredError`、
-型に合わない値は v1 と同じメッセージの `StructuredError`(コード 1)になります。`schema=paths.tasksupport / "invoice.schema.json"` を渡して
-ください。注入される invoice がスキーマを持つのは ExcelInvoice と SmartTable の行タイル
-だけです。結果は `save_invoice(invoice, out)` で保存します。表計算の列から値を
+型に合わない値は v1 と同じメッセージの `StructuredError`(コード 1)になります。注入される invoice はすべてのモードで
+`tasksupport/invoice.schema.json` を持つので、`schema=` は別のスキーマで変換するときだけ
+指定します(#620)。結果は `save_invoice(invoice, out)` で保存します。表計算の列から値を
 埋める場合は、`resolve_custom_key(schema, label)` が `label.ja` または `label.en` が
 一致するキーを返します(`lang="ja"` / `"en"` で言語を限定できます)。該当しないラベルや
 2 つの項目に共通するラベルは、それぞれコード 4012(`InvoiceCustomLabelUnknown`)と

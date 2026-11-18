@@ -172,9 +172,9 @@ keep the digits as entered (`1.50`), read the cell as text
 
 An undeclared key raises `StructuredError` with code 4011
 (`InvoiceCustomKeyUndefined`); a value that does not fit raises `StructuredError`
-(code 1) with v1's message. Pass
-`schema=paths.tasksupport / "invoice.schema.json"`: the injected invoice carries
-its schema only for ExcelInvoice and SmartTable row tiles. Write the result with
+(code 1) with v1's message. The injected invoice carries
+`tasksupport/invoice.schema.json` in every mode, so `schema=` is needed only to
+cast with a different schema (#620). Write the result with
 `save_invoice(invoice, out)`. To fill values from spreadsheet columns,
 `resolve_custom_key(schema, label)` returns the key whose `label.ja` or
 `label.en` equals the label (`lang="ja"` or `"en"` restricts the language). An

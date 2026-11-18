@@ -99,6 +99,23 @@ jobs:
           # Test import using the venv's Python
           & test_env\Scripts\python.exe -c "import rdetoolkit.core; print('Successfully imported rdetoolkit.core')"
 
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Check typed distribution
+        shell: bash
+        env:
+          UV_NO_CONFIG: 1
+        run: |
+          # Strict mypy against the installed wheel: catches stubs missing from
+          # the wheel or never selected by the type checker (#736). mypy comes
+          # from uv.lock, the same version as tox and v2 CI.
+          uv run --isolated --frozen --only-group dev --python "${{ matrix.python-version }}" \
+            python scripts/check_typed_distribution.py --wheel dist/*.whl
+
       - name: Upload built wheels as artifacts
         uses: actions/upload-artifact@v7
         with:

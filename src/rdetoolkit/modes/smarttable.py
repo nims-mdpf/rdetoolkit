@@ -129,6 +129,7 @@ def _with_early_exit_tile(tiles: Iterable[TilePlan], *, invoice_org: Path) -> It
                 table=table,
                 invoice_dir=tile.out.invoice,
                 invoice_org=invoice_org,
+                schema_path=tile.paths.tasksupport / "invoice.schema.json",
             ),
         )
 
@@ -146,7 +147,7 @@ def _original_smarttable_file(rawfiles: tuple[Path, ...]) -> Path | None:
     return None
 
 
-def _early_exit_invoice(*, table: Path, invoice_dir: Path, invoice_org: Path) -> TilePreparation:
+def _early_exit_invoice(*, table: Path, invoice_dir: Path, invoice_org: Path, schema_path: Path) -> TilePreparation:
     """Publish the EarlyExit invoice of the original SmartTable tile.
 
     v1 rewrites ``basic.dataName`` of the tile's own ``invoice.json`` and
@@ -161,6 +162,8 @@ def _early_exit_invoice(*, table: Path, invoice_dir: Path, invoice_org: Path) ->
         table: Original SmartTable file registered as this tile's raw input.
         invoice_dir: This tile's invoice directory.
         invoice_org: The run-level source invoice v1 seeds the tile from.
+        schema_path: ``invoice.schema.json`` the returned invoice carries, as
+            every injected invoice does (#620).
 
     Returns:
         The published tile invoice. The EarlyExit tile has no SmartTable row,
@@ -173,7 +176,7 @@ def _early_exit_invoice(*, table: Path, invoice_dir: Path, invoice_org: Path) ->
     invoice_data = readf_json(invoice_path)
     invoice_data["basic"]["dataName"] = table.name
     writef_json(invoice_path, invoice_data)
-    return TilePreparation(invoice=load_invoice(invoice_path))
+    return TilePreparation(invoice=load_invoice(invoice_path, schema_path=schema_path))
 
 
 class SmartTableInvoiceBuilder:
