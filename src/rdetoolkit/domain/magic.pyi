@@ -72,4 +72,5 @@ def preview_invoice(
     *,
     options: MagicOptions = ...,
     schema: Mapping[str, Any] | None = ...,
+    deferred_scopes: frozenset[str] = ...,
 ) -> ResolutionPreview: ...

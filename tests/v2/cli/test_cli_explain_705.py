@@ -70,7 +70,8 @@ def test_explain_five_modes__explain_p1(tmp_path: Path, monkeypatch: pytest.Monk
     payload = json.loads(result.stdout)
     jsonschema.validate(payload, _schema())
     assert payload["decision"]["chosen_mode"] == mode
-    assert payload["magic_preview"]["status"] == "unavailable"
+    expected = {"rdeformat": "not_applicable"}.get(mode, "no_templates")
+    assert payload["magic_preview"]["status"] == expected
     assert payload["graph_preview"]["status"] == "unavailable"
     assert before == {p.relative_to(tmp_path).as_posix(): p.read_bytes() for p in tmp_path.rglob("*") if p.is_file()}
 

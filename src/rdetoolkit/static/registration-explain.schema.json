@@ -72,6 +72,24 @@
             },
             "reason": {
               "type": "string"
+            },
+            "checks": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "not_checked": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "tiles": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/magic_tile"
+              }
             }
           },
           "required": [
@@ -336,6 +354,89 @@
         "output_paths",
         "invokes_flow",
         "stages"
+      ]
+    },
+    "magic_tile": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "status": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "diagnostics": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/magic_diagnostic"
+          }
+        }
+      },
+      "required": [
+        "index",
+        "status",
+        "reason",
+        "diagnostics"
+      ]
+    },
+    "magic_diagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "destination": {
+          "type": "string"
+        },
+        "expression": {
+          "type": "string"
+        },
+        "offset": {
+          "type": "integer"
+        },
+        "source_scope": {
+          "type": "string"
+        },
+        "source_path": {
+          "type": "string"
+        },
+        "iteration_index": {
+          "type": "integer"
+        },
+        "status": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "code": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "message": {
+          "type": "string"
+        },
+        "remediation": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "destination",
+        "expression",
+        "offset",
+        "source_scope",
+        "source_path",
+        "iteration_index",
+        "status",
+        "reason",
+        "code",
+        "message",
+        "remediation"
       ]
     }
   }

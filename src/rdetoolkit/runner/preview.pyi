@@ -2,6 +2,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+from rdetoolkit.domain.magic import ResolutionDiagnostic
 from rdetoolkit.domain.mode_selection import ModeDecision
 from rdetoolkit.modes.stages import StageSpec
 
@@ -16,6 +17,21 @@ class PlannedTile:
     stages: tuple[StageSpec, ...]
 
 @dataclass(frozen=True, slots=True)
+class MagicTilePreview:
+    index: int
+    status: str
+    reason: str
+    diagnostics: tuple[ResolutionDiagnostic, ...] = ...
+    def to_dict(self) -> dict[str, Any]: ...
+
+@dataclass(frozen=True, slots=True)
+class MagicPreview:
+    status: str
+    reason: str
+    tiles: tuple[MagicTilePreview, ...] = ...
+    def to_dict(self) -> dict[str, Any]: ...
+
+@dataclass(frozen=True, slots=True)
 class RegistrationPreview:
     decision: ModeDecision
     tiles: tuple[PlannedTile, ...]
@@ -24,6 +40,7 @@ class RegistrationPreview:
     iteration_policy: str
     deterministic_order: bool
     warnings: tuple[str, ...]
+    magic: MagicPreview
     schema_version: str = ...
     def to_dict(self) -> dict[str, Any]: ...
 

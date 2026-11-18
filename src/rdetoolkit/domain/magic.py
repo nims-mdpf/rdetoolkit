@@ -15,7 +15,7 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Literal, cast
 
-from rdetoolkit.domain.magic_parser import ExpressionToken, LiteralToken, MagicExpressionError, contains_expression, parse_template
+from rdetoolkit.domain.magic_parser import _SECTIONS_BY_SCOPE, ExpressionToken, LiteralToken, MagicExpressionError, contains_expression, parse_template
 from rdetoolkit.domain.service_errors import validation_error
 from rdetoolkit.errors import ERROR_CATALOG
 
@@ -23,6 +23,8 @@ MAX_NAME_LENGTH = 4096
 MAX_OUTPUT_LENGTH = 16_384
 _FIELDS = ("dataName", "description")
 _ABSENT = object()
+_SCOPES = frozenset({*_SECTIONS_BY_SCOPE, "filename"})
+_NO_DEFERRAL: frozenset[str] = frozenset()
 
 
 @dataclass(frozen=True, slots=True)
@@ -207,6 +209,7 @@ def preview_invoice(
     *,
     options: MagicOptions = _DEFAULT_OPTIONS,
     schema: Mapping[str, Any] | None = None,
+    deferred_scopes: frozenset[str] = _NO_DEFERRAL,
 ) -> ResolutionPreview:
     """Inspect interpolation with the same evaluator used by actual resolution.
 
@@ -218,11 +221,26 @@ def preview_invoice(
         context: Immutable source snapshots available to the preview.
         options: Explicit interpolation and missing-value policies.
         schema: Optional destination invoice schema with local references only.
+            Schema validation is skipped when any expression is deferred,
+            because the candidate is then incomplete.
+        deferred_scopes: Expression scopes (``invoice``, ``invoice-original``,
+            ``invoice-current``, ``metadata``, ``filename``) whose source is not
+            yet available. A token in a deferred scope yields a ``deferred``
+            diagnostic and its source is never read. A destination containing
+            such a token skips the output checks, since its value is unknown.
+            ``resolve_invoice`` never defers.
 
     Returns:
         Ordered redacted diagnostics; preview contract version 1.
+
+    Raises:
+        ValueError: If ``deferred_scopes`` names an unknown expression scope.
     """
-    _, diagnostics = _evaluate(context, options, schema)
+    unknown = deferred_scopes - _SCOPES
+    if unknown:
+        message = f"Unknown deferred scope(s): {sorted(unknown)}; expected a subset of {sorted(_SCOPES)}."
+        raise ValueError(message)
+    _, diagnostics = _evaluate(context, options, schema, deferred_scopes)
     return ResolutionPreview(tuple(diagnostics))
 
 
@@ -237,6 +255,7 @@ def _evaluate(
     context: ResolutionContext,
     options: MagicOptions,
     schema: Mapping[str, Any] | None,
+    deferred: frozenset[str] = _NO_DEFERRAL,
 ) -> tuple[dict[str, Any], list[ResolutionDiagnostic]]:
     candidate = context.current_invoice
     diagnostics: list[ResolutionDiagnostic] = []
@@ -245,8 +264,9 @@ def _evaluate(
         return candidate, diagnostics
     basic = candidate.get("basic")
     if isinstance(basic, dict):
-        _evaluate_fields(context, options, basic, diagnostics)
-    if schema is not None and options.policy != "disabled" and not any(item.code is not None for item in diagnostics):
+        _evaluate_fields(context, options, basic, diagnostics, deferred)
+    complete = not any(item.code is not None or item.status == "deferred" for item in diagnostics)
+    if schema is not None and options.policy != "disabled" and complete:
         _validate_schema(context, candidate, schema, diagnostics)
     return candidate, diagnostics
 
@@ -256,6 +276,7 @@ def _evaluate_fields(
     options: MagicOptions,
     basic: dict[str, Any],
     diagnostics: list[ResolutionDiagnostic],
+    deferred: frozenset[str],
 ) -> None:
     sources = {"invoice": context.original_invoice, "invoice-original": context.original_invoice, "invoice-current": context.current_invoice, "metadata": context.metadata}
     for key in _FIELDS:
@@ -271,8 +292,10 @@ def _evaluate_fields(
         except MagicExpressionError as error:
             diagnostics.append(_diagnostic(context, destination, status="invalid", reason="invalid_expression", code=4009, message=str(error), offset=error.offset))
             continue
-        basic[key] = _render(context, options, sources, tokens, destination, diagnostics)
-        _validate_output(context, destination, basic[key], diagnostics)
+        unknown_output = any(isinstance(token, ExpressionToken) and token.scope in deferred for token in tokens)
+        basic[key] = _render(context, options, sources, tokens, destination, diagnostics, deferred)
+        if not unknown_output:
+            _validate_output(context, destination, basic[key], diagnostics)
 
 
 def _render(
@@ -282,6 +305,7 @@ def _render(
     tokens: tuple[LiteralToken | ExpressionToken, ...],
     destination: str,
     diagnostics: list[ResolutionDiagnostic],
+    deferred: frozenset[str],
 ) -> str:
     parts: list[LiteralToken | str] = []
     omitted = False
@@ -290,14 +314,15 @@ def _render(
             _join_literal(parts, token, omitted)
             omitted = False
         else:
-            text = _resolve_token(context, options, sources, token, destination, diagnostics)
+            text = _resolve_token(context, options, sources, token, destination, diagnostics, deferred)
             if text is None:
                 omitted = True
                 continue
             parts.append(text)
             omitted = False
     text_parts = [part.text if isinstance(part, LiteralToken) else part for part in parts]
-    if sum(map(len, text_parts)) > MAX_OUTPUT_LENGTH:
+    unknown_output = any(isinstance(token, ExpressionToken) and token.scope in deferred for token in tokens)
+    if not unknown_output and sum(map(len, text_parts)) > MAX_OUTPUT_LENGTH:
         diagnostics.append(_diagnostic(context, destination, status="invalid", reason="output_too_long", code=4007))
         return ""
     return "".join(text_parts)
@@ -320,7 +345,11 @@ def _resolve_token(
     token: ExpressionToken,
     destination: str,
     diagnostics: list[ResolutionDiagnostic],
+    deferred: frozenset[str],
 ) -> str | None:
+    if token.scope in deferred:
+        diagnostics.append(_diagnostic(context, destination, token, status="deferred", reason="deferred_source"))
+        return None
     value, reason = _source_value(context, sources, token)
     if reason is None:
         value, reason = _format_value(value, sample=token.section == "sample")
