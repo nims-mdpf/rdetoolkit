@@ -52,6 +52,7 @@ from __future__ import annotations
 
 import dataclasses
 import importlib
+import re
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -81,6 +82,11 @@ from rdetoolkit.graph.strategies.all_graphs import OverlayStrategy
 from rdetoolkit.graph.strategies.dual_axis import DualAxisStrategy
 from rdetoolkit.graph.strategies.individual import IndividualStrategy
 from rdetoolkit.graph.strategies.render_coordinator import collect_render_results
+
+# Rich colours usage errors when the runner forces a terminal (as CI does), which splits
+# option names with escape codes; assertions read the text without them.
+_ANSI_ESCAPE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
+_CLI_ENV = {"COLUMNS": "200"}
 
 REASON = "dual_axis_unsupported"
 # The submodule (``rdetoolkit.graph.api.csv2graph`` the attribute is the function).
@@ -329,10 +335,10 @@ def test_cli_plot_rejects_dual_axis_and_help_says_unsupported__tc_ge12_ep_011(tm
     out = tmp_path / "out"
     runner = CliRunner()
     # When: requesting the dual-axis mode
-    result = runner.invoke(app, ["plot", str(csv_path), "--output-dir", str(out), "--mode", "dual_axis"])
+    result = runner.invoke(app, ["plot", str(csv_path), "--output-dir", str(out), "--mode", "dual_axis"], env=_CLI_ENV)
     # Then: usage error, nothing written
     assert result.exit_code == 2, result.output
-    assert "--mode" in result.output
+    assert "--mode" in _ANSI_ESCAPE.sub("", result.output)
     assert not out.exists()
     # And: the help names the two modes and says dual-axis is not supported
     help_result = runner.invoke(app, ["plot", "--help"], env={"NO_COLOR": "1", "COLUMNS": "250"})

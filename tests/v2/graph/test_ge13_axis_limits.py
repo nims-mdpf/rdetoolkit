@@ -43,6 +43,7 @@ from __future__ import annotations
 
 import math
 import shutil
+import re
 from pathlib import Path
 from typing import Any
 
@@ -62,6 +63,11 @@ from rdetoolkit.graph.spec import AxisSpec, GraphSpec
 from rdetoolkit.graph.validation import validate_axis_limits
 from rdetoolkit.nodes import plot_lines
 from rdetoolkit.testing import make_output_context
+
+# Rich colours usage errors when the runner forces a terminal (as CI does), which splits
+# option names with escape codes; assertions read the text without them.
+_ANSI_ESCAPE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
+_CLI_ENV = {"COLUMNS": "200"}
 
 FIXTURES = Path(__file__).parent / "fixtures"
 INVALID = "invalid_axis_limits"
@@ -436,11 +442,12 @@ def test_cli_invalid_limits_exit_2__tc_ge13_ep_012_v2_0(tmp_path: Path, args: li
     csv_path = _write_csv(tmp_path)
     out = tmp_path / "out"
     # When: invoking with conflicting or invalid limits
-    result = CliRunner().invoke(app, ["plot", str(csv_path), "--output-dir", str(out), *args])
+    result = CliRunner().invoke(app, ["plot", str(csv_path), "--output-dir", str(out), *args], env=_CLI_ENV)
     # Then: usage error naming the option; nothing is written
     assert result.exit_code == 2, result.output
-    assert hint in result.output
-    assert "No such option" not in result.output  # the option exists; the value is what is rejected
+    output = _ANSI_ESCAPE.sub("", result.output)
+    assert hint in output
+    assert "No such option" not in output  # the option exists; the value is what is rejected
     assert not out.exists()
     assert _files(tmp_path) == ["data.csv"]
 

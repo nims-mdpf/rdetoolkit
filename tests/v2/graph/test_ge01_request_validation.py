@@ -39,6 +39,7 @@ BV table:
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Any
 
@@ -65,6 +66,11 @@ from rdetoolkit.graph.exceptions import (
 from rdetoolkit.graph.models import OutputConfig, PlotConfig, PlotMode, RenderCollections
 from rdetoolkit.graph.strategies.render_coordinator import collect_render_results
 from rdetoolkit.graph.validation import validate_plot_request
+
+# Rich colours usage errors when the runner forces a terminal (as CI does), which splits
+# option names with escape codes; assertions read the text without them.
+_ANSI_ESCAPE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
+_CLI_ENV = {"COLUMNS": "200"}
 
 INVALID_MODES: tuple[Any, ...] = ("invalid", "", "dual_axis", "OVERLAY", "Individual", " overlay", None, 1)
 
@@ -392,10 +398,10 @@ def test_cli_plot_rejects_bad_request_with_exit_2__tc_ge01_ep_011(
     csv_path = _write_csv(tmp_path)
     out = tmp_path / "out"
     # When: invoking the plot command with an invalid request
-    result = CliRunner().invoke(app, ["plot", str(csv_path), "--output-dir", str(out), *args])
+    result = CliRunner().invoke(app, ["plot", str(csv_path), "--output-dir", str(out), *args], env=_CLI_ENV)
     # Then: usage error (exit 2) naming the offending option; nothing is written
     assert result.exit_code == 2, result.output
-    assert hint in result.output
+    assert hint in _ANSI_ESCAPE.sub("", result.output)
     assert not out.exists()
     assert _files(tmp_path) == ["data.csv"]
 

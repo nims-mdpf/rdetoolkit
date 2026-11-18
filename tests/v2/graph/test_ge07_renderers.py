@@ -95,6 +95,9 @@ FIXTURES = Path(__file__).parent / "fixtures"
 PLOTLY_HINT = 'pip install "rdetoolkit[plotly]"'
 
 
+_HTML_DOCUMENT_STARTS = ("<!doctype html>", "<html")
+
+
 def _multi_y() -> pd.DataFrame:
     return pd.read_csv(FIXTURES / "multi_unit.csv")
 
@@ -252,7 +255,8 @@ def test_png_and_html_route_by_capability__tc_ge07_ep_004(tmp_path: Path) -> Non
     ]
     assert (tmp_path / "main" / "cell.png").read_bytes().startswith(b"\x89PNG")
     html = (tmp_path / "html" / "cell.html").read_text(encoding="utf-8")
-    assert html.lower().startswith("<!doctype html>") and "plotly" in html
+    # Plotly 7 writes a doctype, Plotly 6 starts the document at <html>
+    assert html.lstrip().lower().startswith(_HTML_DOCUMENT_STARTS) and "plotly" in html
     assert '"name":"Voltage"' in html and '"name":"Current"' in html
     assert _tree(tmp_path) == ["html", "html/cell.html", "main", "main/cell.png"]
     assert plt.get_fignums() == []
@@ -419,7 +423,7 @@ def test_plotly_export_returns_the_html_document__tc_ge07_ep_013() -> None:
     content = renderer.export(handle, "html", dpi=300)
     # Then: valid UTF-8 HTML of the same figure (Plotly assigns a random div id per call)
     text = content.decode("utf-8")
-    assert text.lower().startswith("<!doctype html>") and text.rstrip().endswith("</html>")
+    assert text.lstrip().lower().startswith(_HTML_DOCUMENT_STARTS) and text.rstrip().endswith("</html>")
     assert result.artifacts[0].renderer == "plotly"
     assert [trace.name for trace in handle.data] == ["Voltage", "Current"]
     renderer.close(handle)
