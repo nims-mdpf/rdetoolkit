@@ -4,7 +4,7 @@
 
 `csv2graph`は、CSVファイルやPandas DataFrameから静的なグラフ画像（PNG）やインタラクティブなHTMLグラフ（Plotly）を自動生成するPythonモジュールです。バッテリーサイクルデータ、X線回折（XRD）、X線光電子分光（XPS）などの実験データの可視化に対応しています。
 
-詳細な実行例は[csv2graphサンプル集](./csv2graph_samples.ja.md)を参照してください。
+詳細な実行例は[csv2graphサンプル集](./csv2graph_samples.ja.md)を参照してください。`csv2graph` の土台となる仕様起点の API(`render_graph`、`GraphSpec`、独自の表の読み取りと描画エンジン、`OutputContextSink`、成果物のマニフェスト)は [Graph Engine](./graph_engine.ja.md) を参照してください。
 
 ## 主な機能
 
@@ -62,6 +62,15 @@ Y2,20,25,30
 3,20,30
 ```
 
+### meta_block・auto・インストール済みの読み取り
+
+- `csv_format="meta_block"` は、先頭に `#` で始まるメタデータ行があり、その後にヘッダー行が続くファイルを読み取ります。
+- `csv_format="auto"`(CLI では `--csv-format auto`)は、ファイル先頭の標本(最大 64 KiB・50 行)を読み取り専用で調べ、形式・文字コード・区切り文字を判定します。確信が持てないファイルは推測せず `AmbiguousFormatError` になり、メッセージに候補とその根拠、対処方法(形式を明示する)が示されます。空のファイルは `InvalidCSVFormatError` です。
+- `csv_format` には、エントリーポイント `rdetoolkit.graph.readers` でインストールされた読み取りの ID も指定できます([Graph Engine](./graph_engine.ja.md) を参照)。
+- `rdetoolkit plot data.csv --detect` は、`auto` の判定結果(選ばれる読み取り、根拠、列名、行数)を表示し、描画せずに終了します。
+
+既定は従来どおり `standard` です。
+
 ## プロットモード
 
 ### overlay（統合プロット）
@@ -74,6 +83,20 @@ Y2,20,25,30
 ### individual（個別プロット）
 
 各系列を個別のグラフとして生成します。統合プロットはスキップされます。
+
+### 単位の異なる系列
+
+統合プロットで単位が混在し(たとえば `voltage (V)` と `current (A)`)、`y_label` を指定していない場合も統合プロットは作成されますが、`GraphUserWarning` が出て、y 軸ラベルにすべての単位が並びます(`Voltage (V) / Current (A)`)。個別プロットはそれぞれの列に合わせたラベルになります。単位は文字列として比較し、換算はしません。`render_graph` は既定ではこのような統合プロットを拒否し、`GraphSpec(unit_policy="split")`(単位ごとに 1 枚)を選べます。[Graph Engine](./graph_engine.ja.md) を参照してください。
+
+### 2軸プロット（非対応）
+
+第2 y 軸を持つプロット（2軸プロット）には対応していません。`mode` に指定できるのは `"overlay"` と `"individual"` だけです。`mode="dual_axis"` は `PlotRequestError`（`reason="invalid_mode"`）となり、`rdetoolkit plot --mode dual_axis` は終了コード 2 で終了します。互換性のため `PlotMode.DUAL_AXIS`・`PlotConfigBuilder.set_y2_axis`・`PlotConfig.y2_axis` は引き続きインポートできますが、これらを使った設定を描画すると、何かを描画・出力する前に `PlotRequestError`（`reason="dual_axis_unsupported"`）となります。
+
+単位の異なる系列を表示するには、次のいずれかを使ってください。
+
+- `render_graph` に `GraphSpec(unit_policy="split")` を渡す: 単位ごとに統合プロットを作成
+- `mode="individual"`: 系列ごとに 1 枚、それぞれの単位をラベルに表示
+- `Axes.twinx()` で Matplotlib の図を自分で作成し、`save_figure` ノードで保存する
 
 ## Direction機能
 
@@ -126,7 +149,7 @@ csv2graph("data.csv", grid=True)
 
 ### 軸反転
 
-X軸やY軸を反転できます。XPSスペクトルなどで有用です。
+X軸やY軸を反転できます。XPSスペクトルなどで有用です。HTML出力の軸も同じく反転します。
 
 ```python
 csv2graph(
@@ -147,6 +170,8 @@ csv2graph(
     ylim=(0, 50),     # Y軸範囲: 0-50
 )
 ```
+
+片側だけの指定もできます。`xlim=(0, None)` は下限だけを固定し、上限は自動のままです(`ylim=(None, 10)` は上限だけを固定します)。CLI では `--xmin`、`--xmax`、`--ymin`、`--ymax` でそれぞれ片側だけを指定できます。同じ軸で `--xlim`/`--ylim` と併用すると使用法エラー(終了コード 2)です。逆順の範囲(`min > max`)は軸を反転します。有限でない値、等しい上下限、対数軸での `<= 0` の値は、何かを書き込む前に `PlotRequestError`(`reason="invalid_axis_limits"`)になります。HTML 出力にも同じ範囲が適用されます。
 
 ### ログスケール
 
@@ -673,7 +698,15 @@ html_output_dir/          # csv2graph() ではデフォルトでCSVと同じ場�
 - **`ColumnNotFoundError`**: 指定された列が存在しない
 - **`ValueError`**: X列とY列の設定が不整合
 - **`ImportError`**: `html=True`だがPlotlyがインストールされていない
-- **`PlotConfigError`**: dual_axisモードが使用されている（現在無効化）
+- **`PlotRequestError`**（`reason="invalid_mode"`）: `mode` が `"overlay"` / `"individual"` 以外（`"dual_axis"` を含む）
+- **`PlotRequestError`**（`reason="dual_axis_unsupported"`）: `PlotMode.DUAL_AXIS` または `y2_axis` を含む `PlotConfig` を描画した（2軸プロットは非対応）
+- **`PlotRequestError`**（`reason="contradictory_switches"`）: `mode="individual"` と `no_individual=True` を同時に指定した
+- **`PlotRequestError`**（`reason="invalid_axis_limits"`）: 有限でない値、等しい上下限、対数軸での `<= 0` の値
+- **`AmbiguousFormatError`**（`InvalidCSVFormatError` かつ `ValueError`）: `csv_format="auto"` で形式を決められなかった。メッセージに候補とその根拠が示されます
+
+`PlotRequestError` は `PlotConfigError` であり、同時に `ValueError` でもあります。これらのエラーはすべて、ファイルやディレクトリを作る前に発生します。
+
+個別プロットのファイル名は、最初の図を描く前に全系列分が確保されます。大文字小文字・空白・Unicode 正規化の違いしかない 2 つの系列には、どちらにも系列 ID が付き(`plot_voltage_s000.png`、`plot_voltage_s001.png`)、`GraphUserWarning` が出るため、1 回の実行の中で図が互いを上書きすることはありません。
 
 ### 推奨事項
 

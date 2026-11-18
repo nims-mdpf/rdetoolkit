@@ -6,10 +6,15 @@ from pathlib import Path
 from typing import Any, Literal
 
 from rdetoolkit.graph.legend_policy import VALID_LEGEND_POLICIES
+from rdetoolkit.graph.spec import StyleSpec
 
 
 class PlotMode(str, Enum):
-    """Plot rendering modes."""
+    """Plot rendering modes.
+
+    ``DUAL_AXIS`` is kept for compatibility only: dual-axis plotting is not supported
+    and rendering with it raises ``PlotRequestError(reason="dual_axis_unsupported")``.
+    """
 
     OVERLAY = "overlay"
     INDIVIDUAL = "individual"
@@ -42,7 +47,7 @@ class AxisConfig:
         scale: Axis scale ('linear' or 'log')
         grid: Whether to show grid lines
         invert: Whether to invert axis direction
-        lim: Axis limits as (min, max) tuple (optional)
+        lim: Axis limits as (min, max) tuple (optional); a None side stays automatic
         tick_format: Tick label formatting mode.
             - "auto": Phase 1 default behavior (ScalarFormatter with scilimits-based
               automatic switch to ×10^n notation)
@@ -51,6 +56,11 @@ class AxisConfig:
             - "eng": Use engineering notation with SI-like unit suffix (e.g. "3.6 M")
         scilimits: Power-of-ten range outside of which "auto"/"sci" formatting
             switches to scientific notation (passed to ScalarFormatter.set_powerlimits)
+        label_origin: ``"explicit"`` (default): ``label`` is used as given on every
+            figure. ``"derived"``: ``label`` was derived from the first column only
+            (set by the csv2graph facade when no axis label was passed), so the
+            planner re-derives it per figure from the units of the series it shows
+            (GE-11). Only the y axis honours ``"derived"``.
     """
 
     label: str
@@ -58,9 +68,10 @@ class AxisConfig:
     scale: Literal["linear", "log"] = "linear"
     grid: bool = True
     invert: bool = False
-    lim: tuple[float, float] | None = None
+    lim: tuple[float | None, float | None] | None = None
     tick_format: Literal["auto", "plain", "sci", "eng"] = "auto"
     scilimits: tuple[int, int] = (-3, 4)
+    label_origin: Literal["explicit", "derived"] = "explicit"
 
 
 @dataclass
@@ -261,11 +272,14 @@ class PlotConfig:
     This is the main configuration object built using Builder pattern.
 
     Attributes:
-        mode: Plot mode (combined, individual, dual_axis)
+        mode: Plot mode (overlay or individual; ``dual_axis`` is not supported and
+            raises at render time)
         title: Plot title (optional)
         x_axis: X-axis configuration
         y_axis: Y-axis configuration
-        y2_axis: Secondary Y-axis configuration (dual_axis only)
+        y2_axis: Secondary Y-axis configuration. Not supported: kept for
+            compatibility, rendering a config with a ``y2_axis`` raises
+            ``PlotRequestError(reason="dual_axis_unsupported")``
         legend: Legend configuration
         direction: Direction-based configuration
         output: Output configuration
@@ -274,6 +288,9 @@ class PlotConfig:
         x_col: X column specification (added in Phase 5)
         y_cols: Y column specifications (added in Phase 5)
         direction_cols: Direction column specifications (added in Phase 5)
+        style: Explicit figure size / Matplotlib rcParams over the house defaults;
+            ``None`` keeps the legacy appearance. Set by ``PlotConfigBuilder`` only
+            when ``set_figure_size`` or ``set_matplotlib_params`` was called.
     """
 
     mode: PlotMode = PlotMode.OVERLAY
@@ -289,6 +306,7 @@ class PlotConfig:
     x_col: int | str | list[int | str] | None = None
     y_cols: list[int | str] | None = None
     direction_cols: list[int | str | None] | None = None
+    style: StyleSpec | None = None
 
 
 @dataclass

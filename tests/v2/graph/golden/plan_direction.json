@@ -1,0 +1,103 @@
+{
+  "diagnostics": [],
+  "direction_colors": {
+    "Charge": "red"
+  },
+  "figures": [
+    {
+      "figure_id": "overlay",
+      "kind": "overlay",
+      "series_ids": [
+        "s000"
+      ],
+      "stem": "dir",
+      "title": null,
+      "x_label": "Time (s)",
+      "y_label": "Capacity (Ah)"
+    }
+  ],
+  "legend": {
+    "bottom_threshold": 21,
+    "info": null,
+    "loc": null,
+    "max_items": 20,
+    "ncol": null,
+    "outside_threshold": 8,
+    "policy": "auto"
+  },
+  "mark": "line",
+  "origins": {
+    "series": "explicit",
+    "series[s000].label": "derived",
+    "series[s000].unit": "explicit",
+    "style.figure_size": "default",
+    "style.rc_params": "default",
+    "title": "default",
+    "x": "default",
+    "x_axis.label": "derived",
+    "x_axis.limits": "default",
+    "y_axis.label": "derived",
+    "y_axis.limits": "default"
+  },
+  "series": [
+    {
+      "color_index": 0,
+      "direction_index": 2,
+      "directions": [
+        "Charge",
+        "Discharge"
+      ],
+      "frame": 0,
+      "header_label": "capacity",
+      "header_series": null,
+      "label": "Capacity",
+      "series_id": "s000",
+      "show_in_legend": true,
+      "unit": "Ah",
+      "unit_group": 0,
+      "x_index": 0,
+      "x_name": "time (s)",
+      "y_index": 1,
+      "y_name": "capacity (mAh)"
+    }
+  ],
+  "spec_version": 1,
+  "style": {
+    "figure_size": [
+      8.85,
+      8
+    ],
+    "rc_params": {
+      "axes.xmargin": 0,
+      "font.size": 20,
+      "xtick.direction": "in",
+      "xtick.labelsize": 20,
+      "ytick.direction": "in",
+      "ytick.labelsize": 20
+    }
+  },
+  "unit_groups": [
+    [
+      "Ah",
+      [
+        "s000"
+      ]
+    ]
+  ],
+  "x_axis": {
+    "grid": false,
+    "invert": false,
+    "label": null,
+    "limits": null,
+    "scale": "linear",
+    "tick_format": "auto"
+  },
+  "y_axis": {
+    "grid": false,
+    "invert": false,
+    "label": null,
+    "limits": null,
+    "scale": "linear",
+    "tick_format": "auto"
+  }
+}

@@ -17,6 +17,26 @@ class StandardParser:
         Index(['Time', 'Voltage', 'Current'], dtype='object')
     """
 
+    def __init__(self, *, encoding: str | None = None, delimiter: str | None = None) -> None:
+        """Create the parser.
+
+        Args:
+            encoding: Text encoding passed to ``pandas.read_csv``; ``None`` keeps the
+                pandas default (UTF-8), exactly as before these options existed.
+            delimiter: Field delimiter passed as ``sep``; ``None`` keeps the default comma.
+        """
+        self.encoding = encoding
+        self.delimiter = delimiter
+
+    def _read_options(self) -> dict[str, str]:
+        """Return only the options that were set, so the no-argument call is unchanged."""
+        options: dict[str, str] = {}
+        if self.encoding is not None:
+            options["encoding"] = self.encoding
+        if self.delimiter is not None:
+            options["sep"] = self.delimiter
+        return options
+
     def parse(self, csv_path: Path) -> pd.DataFrame:
         """Parse standard CSV file.
 
@@ -35,7 +55,7 @@ class StandardParser:
             raise FileNotFoundError(msg)
 
         try:
-            df = pd.read_csv(csv_path)
+            df = pd.read_csv(csv_path, **self._read_options())
         except pd.errors.ParserError as e:
             msg = f"Failed to parse CSV file: {csv_path}"
             raise pd.errors.ParserError(msg) from e

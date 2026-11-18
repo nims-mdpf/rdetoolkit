@@ -58,6 +58,7 @@ plugins:
                     - データタイル説明欄の自動転記: usage/structured_process/feature_description.md
                     - csvをグラフ化する: usage/structured_process/csv2graph.md
                     - csv2graphサンプル集: usage/structured_process/csv2graph_samples.md
+                    - Graph Engine(GraphSpec・読み取り・描画エンジン): usage/structured_process/graph_engine.md
                 - データ登録モード:
                     - 利用可能なデータ登録モード: usage/mode/mode.md
                     - invoiceモード: usage/mode/mode_invoice.md
@@ -162,6 +163,7 @@ plugins:
                     - Feature Description: usage/structured_process/feature_description.md
                     - Visualizing CSV as Graphs: usage/structured_process/csv2graph.md
                     - csv2graph Sample Gallery: usage/structured_process/csv2graph_samples.md
+                    - Graph Engine (GraphSpec, Readers, Renderers): usage/structured_process/graph_engine.md
                 - Data Registration Modes:
                     - Available Data Registration Modes: usage/mode/mode.md
                     - Invoice Mode: usage/mode/mode_invoice.md
@@ -274,6 +276,8 @@ markdown_extensions:
       noclasses: true
       pygments_style: colorful
       linenums: true
+  - pymdownx.snippets:
+      check_paths: true
   - pymdownx.tabbed:
       alternate_style: true
   - attr_list

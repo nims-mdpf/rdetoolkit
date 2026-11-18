@@ -648,6 +648,80 @@ invoice シート自体がないブックについては既存のエラー契約
 run 単位の invoice の行について: 登録時の値は各タイルに用意された invoice を使い、
 タイル固有の値はそのタイルの flow の中で求めて `save_invoice` で書き出してください。
 
+### csv2graph / Graph Engine
+
+グラフの入口で意図して変えた振る舞いには、IC-1 から IC-16 までの固定の ID が付いています。
+以下の表は話題ごとにまとめ、各表の行は ID の順に並べています。
+仕様起点の API(`render_graph`、`GraphSpec`、独自の表の読み取りと描画エンジン)は [Graph Engine](usage/structured_process/graph_engine.ja.md) を参照してください。
+
+`csv2graph`、`plot_from_dataframe`、`rdetoolkit plot` は、図を描画する前に依頼内容を検証します。
+次の依頼は `PlotRequestError` になります。これは `PlotConfigError` であり、同時に `ValueError` でもあるため、
+`ValueError` を捕捉する既存のコードはそのまま動きます。理由は属性 `reason` で判別できます。
+エラーはファイルやディレクトリを作る前に発生します。CLI は同じ条件を終了コード 2 の使い方の誤りとして扱います。
+
+| ID | 変更 | v1 | v2 | 対処 |
+|---|---|---|---|---|
+| IC-1 | `mode` に `"overlay"` / `"individual"` 以外の値を渡す(大文字小文字の違いや `"dual_axis"` を含む) | 個別グラフとして描画 | `PlotRequestError`(`reason="invalid_mode"`) | 正しい `mode` を渡す |
+| IC-2 | `mode="individual"` と `no_individual=True`(CLI では `--mode individual --no-individual`)を同時に指定 | 何も出力せずに終了 | `PlotRequestError`(`reason="contradictory_switches"`)。CLI は終了コード 2 | どちらか一方を外す |
+
+列が 1 つもない表は従来どおり `ColumnNotFoundError`、y 系列がない表は従来どおり `ValueError` です。
+
+個別グラフのファイル名は、最初の図を描く前に全系列分が確保されるため、1 回の実行の中で成果物が互いを上書きすることはありません。
+
+| ID | 変更 | v1 | v2 | 対処 |
+|---|---|---|---|---|
+| IC-3 | 個別グラフのファイル名が大文字小文字・空白・Unicode 正規化の違いしかない 2 系列(例: `Voltage` と `voltage`、`A B` と `A_B`)、または `/`・`\`・`..` を含むヘッダー | 後の図が先の図を上書き。危険なヘッダーは重ね描き画像を書いた後にエラー | 衝突した系列すべてに系列 ID を付加(`plot_voltage_s000.png`、`plot_voltage_s001.png`)し、`GraphUserWarning` を出す。危険な文字は `_` に置換。衝突しない名前は従来どおり | 特定のファイル名が必要なら列名を変える |
+
+軸範囲は `csv2graph`、`plot_from_dataframe`、`rdetoolkit plot`、`GraphSpec`(`AxisSpec.limits`)で共通の規則により検証されます。
+`None` の側は自動範囲のままなので、`xlim=(0, None)` は下限だけを固定します。逆順の範囲(`min > max`)は従来どおり受け付け、軸を反転します。
+CLI では `--xmin`、`--xmax`、`--ymin`、`--ymax` でそれぞれ片側だけを指定できます。同じ軸で `--xlim`/`--ylim` と併用すると使用法エラー(終了コード 2)です。
+同じ表には、Matplotlib のスタイルと図の所有(IC-5)、単位の混在する重ね描き(IC-6)、2 軸プロット(IC-7)、図の大きさとスタイルの設定(IC-10)の変更も含めています。
+
+| ID | 変更 | v1 | v2 | 対処 |
+|---|---|---|---|---|
+| IC-4 | `(0, None)` や `(None, 10)` のような片側だけの `xlim`/`ylim`。有限でない値、上下限が等しい範囲、対数軸(`logx`/`logy`)での `0` 以下の値 | 片側だけの指定は無視(両側とも自動)。不正な範囲は Matplotlib に渡され、警告とともに無視 | 指定した側だけを適用し、もう片側は自動のまま。不正な範囲は何も書き出す前に `PlotRequestError`(`reason="invalid_axis_limits"`)となり、軸と値をメッセージで示す。CLI は終了コード 2 | 従来の完全自動にしたい場合は範囲を省略する。対数軸では正の値を渡す |
+| IC-5 | `csv2graph`・`plot_from_dataframe`・`rdetoolkit plot` 実行後の Matplotlib のスタイルと図 | グラフ用のスタイル(`font.size` 20、内向きの目盛りなど)がプロセス全体の `rcParams` に残り、後の描画にも影響した。保存に失敗した場合も含め、図はすべて開いたまま残った | スタイルは図の描画と保存の間だけ適用され、呼び出し後の `rcParams` は変わらない。保存した図は書き込みに失敗した場合も閉じる。`return_fig=True` で返す図は開いたまま呼び出し側の所有となり(`plt.close` で閉じる)、レイアウトが固定されるため 300 dpi で保存すると従来と同じ画像になる。バックエンドは切り替えない | 後の描画が従来のグローバルなスタイルに依存していた場合は、描画の前に `apply_matplotlib_config()` を呼ぶ |
+| IC-6 | `csv2graph`・`plot_from_dataframe`・`rdetoolkit plot` の重ね描きに単位の異なる系列(例: `voltage (V)` と `current (A)`)があり、`y_label` を指定しない | y 軸のラベルは最初の列だけから作られ(`Voltage (V)`)、重ね描きにもすべての個別グラフにも使われた | 重ね描きは従来どおり描画するが、`GraphUserWarning` を出し、y 軸のラベルにすべての単位を並べる(`Voltage (V) / Current (A)`)。個別グラフはそれぞれの列から作ったラベルになる(`Current (A)`)。単位は文字列として比較し、換算はしない(`mV` と `V` は別の単位)。単位のない列は互換とみなし、換算しない。`render_graph` は同じ重ね描きを既定で `PlotRequestError`(`reason="unit_mismatch"`)とし、`GraphSpec(unit_policy="split")`(単位ごとに重ね描き)、`"warn"`、`"allow"` を選べる | すべての図で同じラベルにしたい場合は `y_label=` を渡す。単位ごとに分けて描画してもよい |
+| IC-7 | `PlotMode.DUAL_AXIS` または `y2_axis` を含む従来の `PlotConfig` を描画する(例: `collect_render_results(df, config, PlotMode.DUAL_AXIS)`、`MatplotlibRenderer.render_overlay`、`PlotlyRenderer.render_html`、描画ストラテジー) | `collect_render_results` に `PlotMode.DUAL_AXIS` を渡すと、代わりに個別グラフを黙って描画した。`y2_axis` は無視された。`DualAxisStrategy` は `PlotConfigError` | 2軸プロットは非対応。図やファイルを作る前に `PlotRequestError`(`reason="dual_axis_unsupported"`、従来どおり `PlotConfigError` でもある)となり、別の図への代替描画はしない。メッセージに代替手段を示す。`PlotMode.DUAL_AXIS`・`set_y2_axis`・`y2_axis`・`DualAxisStrategy`・`DualAxisError` は引き続きインポートできるが、`DualAxisStrategy` は `rdetoolkit.graph.strategies.__all__` から外した。`csv2graph`・`plot_from_dataframe`・`rdetoolkit plot` の `mode="dual_axis"` は従来どおり不正なモード(IC-1) | 単位ごとに分けて描画する: `render_graph` に `GraphSpec(unit_policy="split")`、`mode="individual"`、または `Axes.twinx()` で作った Matplotlib の図を `save_figure` ノードで保存 |
+| IC-10 | `build()` の前に `PlotConfigBuilder.set_figure_size(...)` または `set_matplotlib_params(...)` を呼び、その設定を `MatplotlibRenderer` や描画ストラテジーで描画する。`render_graph` に `GraphSpec.style` を渡す | どちらの設定も無視され、図は常に 8.85 x 8 インチ・グラフ用の既定スタイルだった | 生成された `PlotConfig.style`(`StyleSpec`)が図のサイズを決め、rcParams を既定スタイルの上に、その呼び出しの図にだけ適用する。HTML はサイズを明示した場合だけそのサイズになる。不正なサイズや rcParam は図を作る前に `PlotRequestError`(`reason="invalid_figure_size"` または `"invalid_rc_param"`)となる。設定メソッド自体は従来どおりどの値も受け付ける | 従来の図のままにしたい場合は設定メソッドを呼ばない |
+
+Matplotlib(PNG/SVG/PDF)と Plotly(HTML)の図は、1 つに解決された系列の計画から描画されます。
+列の位置、x と y の対応、方向による分割と絞り込み、凡例の項目、系列の色は描画の前に一度だけ決まるため、
+不正な列の指定は図を作る前にエラーになります。凡例のラベルは各バックエンドで v1 の形を保ちます
+(画像では整形済み、HTML では列名どおり)。
+
+| ID | 変更 | v1 | v2 | 対処 |
+|---|---|---|---|---|
+| IC-11 | 同じ見出しを持つ 2 つの y 列を位置または既定の選択で指定する。`direction_cols` が `y_cols` より少ない状態で `PlotlyRenderer.render_html` を直接呼ぶ。凡例ラベルが等しい系列 | 同じ見出しは `ValueError`("resolved to a slice")。Plotly は短い方向列リストで `ValueError`。HTML はラベルの等しい系列をすべて凡例に並べ、同じ色にした | 両方の列をそれぞれのデータで描画する。短い方向列リストは画像と同様に補完する(足りない系列は方向列なし)。等しいラベルは凡例に 1 回だけ載り、色は画像でも HTML でも系列の位置で決まる。共有された見出しを名前で指定すると `PlotRequestError`(`reason="ambiguous_column"`) | 対処は不要。凡例で区別したい場合は列名またはラベルを変える |
+
+描画エンジンは差し替えられます。`render_graph` の `renderers` に `RendererRegistry` を渡すと、成果物ごとに、その形式と図の種類を `RendererCapabilities` で宣言している最初の描画エンジンが使われます。`GraphRenderer` プロトコル(`capabilities`、`render`、`export`、`close`)を満たす任意のオブジェクトを登録でき、rdetoolkit の内部を書き換える必要はありません。省略時は呼び出しごとに新しい `builtin_renderers()`(画像は Matplotlib、重ね描きの HTML は Plotly)を使います。対応しない形式、個別グラフの HTML、Plotly が入っていない環境での HTML は、ファイルやディレクトリを作る前に `UnsupportedFormatError` または `RendererUnavailableError`(`ImportError` の一種で、`pip install "rdetoolkit[plotly]"` を案内する)になります。`csv2graph` と `plot_from_dataframe` の `html=True` も、描画を始める前に Plotly の有無を確認します。従来も Plotly がなければファイルを書き出す前に `ImportError` で失敗していたため、`ImportError` を捕捉するコードはそのまま動きます。
+
+表形式の自動判定(`csv_format="auto"`、`--csv-format auto`、`render_graph` の既定 `reader="auto"`)は、ファイル先頭の限られた範囲(最大 64 KiB・50 行)だけを読み取り専用で調べ、判断の根拠を `DetectionDecision` として返します。確信が持てないファイルは推測せずにエラーにします。`csv2graph` と `rdetoolkit plot` の既定は従来どおり `standard` です。`rdetoolkit plot --detect` で、描画せずに判定結果(選ばれる読み取り方法、根拠、列名、行数)を確認できます。
+
+| ID | 変更 | v1 | v2 | 対処 |
+|---|---|---|---|---|
+| IC-8 | `ParserFactory.auto_detect` に、1 行目がすべて数値のファイル、1 行目に文字と数値が混在するファイルなど形式を決めきれないファイルを渡す | ヘッダーなしの形式(`NoHeaderParser`)と推測。ヘッダー付きで最初のデータ行が数値のファイルも、ヘッダーをデータとして読んでいた | `AmbiguousFormatError` を出し、候補・根拠・対処(`--csv-format`)をメッセージに示す。ヘッダー付きのファイルはヘッダーとして読み、転置・タブ区切り・Shift-JIS・メタデータブロックのファイルにはそれに合う parser を返す。空のファイルは `InvalidCSVFormatError` | 形式を明示する(`ParserFactory.create(...)`、`csv_format=...`、`--csv-format ...`) |
+
+成果物の出力先は `render_graph` の `OutputSpec(sink=...)` で指定します。`DirectorySink` は通常のディレクトリへ、`OutputContextSink` は RDE の `OutputContext` のディレクトリへ書き込みます。
+振り分けは従来の csv2graph と同じで、重ね描きの画像は `main_image`、個別グラフの画像は個別グラフ用のディレクトリ(`OutputContextSink` では `other_image`)、HTML は HTML 用のディレクトリ(`OutputContextSink` では `struct`)です。
+画像は PNG・SVG・PDF を重ね描きと個別グラフに、HTML は重ね描きにだけ出力できます。それ以外の組み合わせは何かを書き込む前に `UnsupportedFormatError` に、Plotly がない場合の HTML は `RendererUnavailableError`(インストール方法を示す `ImportError`)になります。
+出力先は名前と実際のパス(シンボリックリンクの先を含む)の両方で検査され、ディレクトリの外を指すものは `OutputPathError`(`ValueError`)です。既存のファイルは既定で上書きし、`Artifact.replaced_existing` に記録します。`OutputSpec(on_existing="error")` では描画の前に `ArtifactCollisionError` になります。
+`GraphResult.manifest_json()` はすべての成果物を計画の順に、ファイル名だけで列挙します(表形式の判定結果も構造化して含みます)。同じ依頼なら出力先のディレクトリが違っても同じ内容になり、HTML のバイト列も同じです。
+
+| ID | 変更 | v1 | v2 | 対処 |
+|---|---|---|---|---|
+| IC-9 | 出力先のファイルがシンボリックリンクで、出力ディレクトリと文字列の先頭が同じ別のディレクトリ(例: `out` に対する `out2`)を指す。`csv2graph`・`plot_from_dataframe`・`rdetoolkit plot`・`FileWriter` が使う `PathValidator` | 文字列の前方一致で判定していたため、ディレクトリの内側として書き込んだ | パスの構成要素で判定し、`ValueError`("Security violation")とする。従来の保存処理は、最初のファイルを書く前にすべての出力先を検査する | なし(セキュリティ修正) |
+| IC-13 | `OutputConfig.formats` に PNG 以外の画像形式(例: `["png", "svg"]`)を指定して `IndividualStrategy` で描画する | 個別グラフは常に PNG だけ | 系列ごとに、HTML 以外の各形式で 1 ファイルずつ(同じファイル名で拡張子だけが異なる)出力する。画像形式が 1 つもなければ従来どおり PNG。`csv2graph` と `plot_from_dataframe` の出力は変わらない | PNG だけにしたい場合は `formats=["png"]` を指定する |
+| IC-14 | `xlim`/`ylim`(または `AxisSpec.limits`)を指定して HTML を出力する(`html=True`、`PlotlyRenderer`、`render_graph`) | HTML では軸範囲を無視し、常に自動範囲 | 画像と同じ範囲を HTML の軸にも適用する。対数軸は 10 を底とする対数で指定し、`None` の側は自動のまま | 自動範囲にしたい場合は範囲を指定しない |
+| IC-15 | `MatplotlibRenderer.render_individual(df, config, y_col_index)` に、フレームの列数を超える `y_col_index` を渡す | 描画中に pandas の `IndexError` | 図を作る前に `PlotRequestError`(`reason="unknown_column"`、`ValueError` であり `IndexError` ではない)。フレームにあるが `config.y_cols` に含まれない列は、v1 と同じく描画する | `IndexError` ではなく `ValueError` か `PlotRequestError` を捕捉する |
+| IC-16 | `invert_x`/`invert_y`(または `AxisSpec.invert`)を指定して HTML を出力する(`html=True`、`PlotlyRenderer`、`render_graph`) | 画像では軸が反転するのに、HTML では反転を無視して通常の向きのまま | 画像と同じく HTML の軸も反転する。自動範囲の軸はそのまま反転し、範囲を指定した場合は反転した範囲になる(対数軸は 10 を底とする対数)。`None` の側は自動のまま | 通常の向きにしたい場合は `invert_x`/`invert_y` を指定しない |
+
+組み込みノード `plot_lines` と `plot_scatter` は、列・ペア・複数フレーム・系列ラベルの解決と軸範囲の検証に、`render_graph` と同じ計画処理と検証を使います。同じ依頼は両方の API で同じ系列・ラベル・データになります。ノード ID、引数、呼び出し記録、出力先、画像は変わらず、csv2graph 用のスタイルも適用しません。`save_figure` は従来どおり呼び出し側の図を閉じずに保存します。
+
+| ID | 変更 | v2 プレリリース | v2 | 対処 |
+|---|---|---|---|---|
+| IC-12 | `plot_lines`・`plot_scatter` に存在しない列名、または複数の列が持つ列名を渡す。`plot_lines` に不正な `xlim`/`ylim`(有限でない値、上下限が等しい範囲、`"log"` 軸での `0` 以下の値)を渡す | 存在しない列は `KeyError`。重複した列名は、`plot_lines` では該当する列すべてを 1 つのラベルで描画し、`plot_scatter` では Matplotlib の `ValueError`。不正な範囲は Matplotlib に渡され、警告とともに無視または自動で拡張 | 図を作る前に `PlotRequestError`(`ValueError` の一種)。`reason` は `"unknown_column"`、`"ambiguous_column"`、`"invalid_axis_limits"` | `KeyError` を捕捉していた場合は `ValueError` または `PlotRequestError` を捕捉する。列名を一意にし、対数軸では正の値を渡す |
+
 ### 診断と従来のトレースバック
 
 v2 で失敗を調べるときは、コーディングエージェントを使うかどうかにかかわらず

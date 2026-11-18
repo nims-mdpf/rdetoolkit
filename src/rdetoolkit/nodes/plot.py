@@ -1,11 +1,19 @@
-"""Headless scientific plotting nodes for rdetoolkit v2."""
+"""Headless scientific plotting nodes for rdetoolkit v2.
+
+``plot_lines`` and ``plot_scatter`` are thin adapters over the Graph Engine: the
+planner (``build_plot_plan``) resolves columns, pairs, frames and series labels,
+``validate_axis_limits`` checks the axis limits and ``draw_series`` draws every
+planned series. The nodes keep their own presentation (title, scales, grid,
+legend, label font size, default axis labels) and plain Matplotlib defaults: none
+of the csv2graph house style is applied. ``save_figure`` and ``save_html_figure``
+save caller-owned figures.
+"""
 
 from __future__ import annotations
 
 import re
 import hashlib
 import importlib
-from io import BytesIO
 from pathlib import Path
 from typing import Any
 from collections.abc import Sequence
@@ -16,8 +24,13 @@ mpl.use("Agg")
 
 import matplotlib.pyplot as plt  # noqa: E402
 import pandas as pd  # noqa: E402
+from matplotlib.axes import Axes  # noqa: E402
 
 from rdetoolkit.core.node import node  # noqa: E402
+from rdetoolkit.graph.plan import PlotData, PlotPlan, build_plot_plan, column_position  # noqa: E402
+from rdetoolkit.graph.renderers.mpl_runtime import draw_series, export_figure  # noqa: E402
+from rdetoolkit.graph.spec import GraphSpec, SeriesSpec  # noqa: E402
+from rdetoolkit.graph.validation import validate_axis_limits  # noqa: E402
 from rdetoolkit.types import OutputContext, OutputKind  # noqa: E402
 
 _DPI = 150
@@ -26,6 +39,7 @@ _PAIR_WITH_LABEL = 3
 _DIV_ID_UNSAFE = re.compile(r"[^A-Za-z0-9_-]+")
 _DIV_ID_DIGEST_LEN = 8
 _PLOTLY_MISSING = 'save_html_figure requires plotly, which is not installed; install it with: pip install "rdetoolkit[plotly]"'
+_NO_SERIES = "plot_lines requires at least one measurement series"
 
 #: A line-series pair: x column, y column and an optional legend label.
 LinePair = tuple[str, str] | tuple[str, str, str]
@@ -38,11 +52,9 @@ def _figure_bytes(
 ) -> bytes:
     suffix = Path(filename).suffix.lower().lstrip(".") or "png"
     image_format = "jpeg" if suffix in {"jpg", "jpeg"} else suffix
-    buffer = BytesIO()
     # ``None`` defers to matplotlib's own savefig defaults (rcParams), which is
     # exactly what a v1 ``fig.savefig(path)`` call used.
-    fig.savefig(buffer, format=image_format, dpi=dpi, bbox_inches=bbox_inches, pad_inches=pad_inches)
-    return buffer.getvalue()
+    return export_figure(fig, image_format, dpi=dpi, bbox_inches=bbox_inches, pad_inches=pad_inches)
 
 
 @node(tags=["builtin", "plot"], version="2.0.0", idempotent=True)
@@ -63,7 +75,9 @@ def plot_lines(
     tight bounding box. Axis-label font sizes follow matplotlib rcParams
     unless ``label_fontsize`` is given. Output is canonical under
     ``out.main_image``, as in
-    ``retired/outputcontext_save_methods_v20.py::save_graph``.
+    ``retired/outputcontext_save_methods_v20.py::save_graph``. Columns are
+    resolved by the Graph Engine planner, so a column is addressed by its
+    exact label and a label carried by several columns is ambiguous.
 
     Args:
         df: Data frame whose columns become line series, or a sequence of
@@ -81,14 +95,16 @@ def plot_lines(
             frames). Defaults to the y column names. Cannot be combined with
             labelled pairs.
         title: Optional plot title.
-        xlabel: Optional horizontal axis label.
+        xlabel: Optional horizontal axis label. Defaults to the x column, or
+            the index name (``index`` when unnamed) without an x column.
         ylabel: Optional vertical axis label. Defaults to the y column
             names, each named once.
         xscale: Matplotlib horizontal axis scale.
         yscale: Matplotlib vertical axis scale.
         xlim: Horizontal axis range ``(lower, upper)``, applied after the
             scale; a None bound keeps the automatic limit, so ``(0, None)``
-            starts the axis at 0. None keeps both automatic.
+            starts the axis at 0. None keeps both automatic. Reversed bounds
+            invert the axis.
         ylim: Vertical axis range, with the same rules as ``xlim``.
         legend: Whether to show series labels.
         grid: Whether to draw the major grid lines.
@@ -106,18 +122,26 @@ def plot_lines(
         Path to the rendered plot.
 
     Raises:
-        ValueError: If no frame is given, a frame has no columns, or the
-            series, pairs or labels are inconsistent.
+        PlotRequestError: ``reason="unknown_column"`` or ``"ambiguous_column"``
+            for a column matching no or several columns, and
+            ``reason="invalid_axis_limits"`` for a non-finite bound, equal
+            bounds or a bound ``<= 0`` on a ``"log"`` axis; raised before any
+            figure exists. It is a ``ValueError``.
+        ValueError: If no frame is given, a frame has no columns or
+            contributes no series, or the series, pairs or labels are
+            inconsistent.
     """
     frames = _frames(df)
-    series = [(frame, selection) for frame in frames for selection in _line_selections(frame, x=x, y=y, pairs=pairs)]
-    selections = [selection for _, selection in series]
-    series_labels = _series_labels(selections, labels)
-    x_label, y_label = _line_labels(frames[0], x, selections, xlabel, ylabel)
+    plan, selected = _line_plan(frames, x=x, y=y, pairs=pairs, labels=labels)
+    limits = (_checked_limits(xlim, xscale, "x"), _checked_limits(ylim, yscale, "y"))
+    x_label, y_label = _axis_labels(plan, frames[0], x=x, xlabel=xlabel, ylabel=ylabel)
+    data = PlotData(frames=selected)
+    # Deliberately a pyplot figure (closed below), not the engine's pyplot-free
+    # new_figure: node contracts observe ``figure.number`` of the drawn axes.
     fig, ax = plt.subplots(figsize=figsize)
     try:
-        for (frame, (x_column, y_column, _)), label in zip(series, series_labels, strict=True):
-            ax.plot(frame.index if x_column is None else frame[x_column], frame[y_column], label=label)
+        for series in plan.series:
+            draw_series(ax, plan, series, data, label=series.label)
         ax.set_xlabel(x_label)
         ax.set_ylabel(y_label)
         # ``set_xlabel(fontsize=None)`` would reset the label to ``font.size``,
@@ -126,11 +150,7 @@ def plot_lines(
             ax.xaxis.label.set_fontsize(label_fontsize)
             ax.yaxis.label.set_fontsize(label_fontsize)
         ax.set(title=title or "", xscale=xscale, yscale=yscale)
-        # Limits follow the scale so they are not re-derived by a scale change.
-        if xlim is not None:
-            ax.set_xlim(*xlim)
-        if ylim is not None:
-            ax.set_ylim(*ylim)
+        _apply_limits(ax, *limits)
         if grid:
             ax.grid(True)
         if legend:
@@ -138,9 +158,6 @@ def plot_lines(
         return out.write_bytes(kind, filename, _figure_bytes(fig, filename, dpi=dpi, bbox_inches=bbox_inches, pad_inches=pad_inches))
     finally:
         plt.close(fig)
-
-
-_Selection = tuple[str | None, str, str | None]
 
 
 def _frames(df: pd.DataFrame | Sequence[pd.DataFrame]) -> list[pd.DataFrame]:
@@ -154,21 +171,49 @@ def _frames(df: pd.DataFrame | Sequence[pd.DataFrame]) -> list[pd.DataFrame]:
     return frames
 
 
-def _line_selections(df: pd.DataFrame, *, x: str | None, y: str | Sequence[str] | None, pairs: Sequence[LinePair] | None) -> list[_Selection]:
+def _line_plan(
+    frames: list[pd.DataFrame], *, x: str | None, y: str | Sequence[str] | None,
+    pairs: Sequence[LinePair] | None, labels: Sequence[str] | None,
+) -> tuple[PlotPlan, tuple[pd.DataFrame, ...]]:
+    selection = _line_request(x=x, y=y, pairs=pairs)
+    # Node columns are labels (as in v1 frame indexing), while a GraphSpec ``int`` is a
+    # position: every frame is reduced to its selected columns, in selection order,
+    # so the spec addresses positions that mean the same thing in every frame.
+    selected = tuple(_select_columns(frame, x, selection) for frame in frames)
+    series, x_ref = _positional_series(selection, has_x=x is not None)
+    # The spec forbids an explicit x together with x_default="index".
+    # The caller names every series explicitly, so a mixed-unit selection is deliberate.
+    common: dict[str, Any] = {"series": series, "layout": "overlay", "label_style": "raw", "unit_policy": "allow"}
+    spec = GraphSpec(x=x_ref, **common) if x_ref is not None else GraphSpec(x_default="index", **common)
+    plan = build_plot_plan(selected, spec)
+    # The engine skips a frame without default series; the node never did.
+    if {entry.frame for entry in plan.series} != set(range(len(frames))):
+        raise ValueError(_NO_SERIES)
+    return (plan if labels is None else _relabelled(plan, labels, pairs)), selected
+
+
+#: One requested series: x label (None: the node-level x or the index), y label, legend label.
+_Request = tuple[Any, Any, str | None]
+
+
+def _line_request(*, x: Any, y: Any, pairs: Sequence[LinePair] | None) -> tuple[_Request, ...] | None:
+    """Return the requested series, or None for the default (every column except x)."""
     if pairs is not None:
         if x is not None or y is not None:
             msg = "Specify either pairs or x/y column selection"
             raise ValueError(msg)
-        selections = [_pair_selection(pair) for pair in pairs]
+        selection = tuple(_pair_request(pair) for pair in pairs)
+    elif y is None:
+        return None
     else:
-        selections = [(x, column, None) for column in _line_columns(df, x, y)]
-    if not selections:
-        msg = "plot_lines requires at least one measurement series"
-        raise ValueError(msg)
-    return selections
+        selection = tuple((None, column, None) for column in ([y] if isinstance(y, str) or not isinstance(y, Sequence) else y))
+    # An empty selection must not fall back to the planner's "every column" default.
+    if not selection:
+        raise ValueError(_NO_SERIES)
+    return selection
 
 
-def _pair_selection(pair: Sequence[str]) -> _Selection:
+def _pair_request(pair: Sequence[str]) -> _Request:
     if len(pair) == _PAIR_WITH_LABEL:
         return pair[0], pair[1], pair[2]
     if len(pair) == _PAIR_WITH_LABEL - 1:
@@ -177,29 +222,66 @@ def _pair_selection(pair: Sequence[str]) -> _Selection:
     raise ValueError(msg)
 
 
-def _series_labels(selections: Sequence[_Selection], labels: Sequence[str] | None) -> list[str]:
-    if labels is None:
-        return [str(y_column) if label is None else label for _, y_column, label in selections]
-    if any(label is not None for _, _, label in selections):
+def _select_columns(frame: pd.DataFrame, x: Any, selection: tuple[_Request, ...] | None) -> pd.DataFrame:
+    """Reorder ``frame`` to the selected columns: [x], then each selection's (x,) y."""
+    x_positions = [] if x is None else [column_position(frame, x, "x")]
+    if selection is None:
+        rest = [position for position in range(frame.shape[1]) if position not in x_positions]
+        return frame.iloc[:, x_positions + rest]
+    order = list(x_positions)
+    for pair_x, column, _ in selection:
+        if pair_x is not None:
+            order.append(column_position(frame, pair_x, "x"))
+        order.append(column_position(frame, column, "y"))
+    return frame.iloc[:, order]
+
+
+def _positional_series(selection: tuple[_Request, ...] | None, *, has_x: bool) -> tuple[tuple[SeriesSpec, ...], int | None]:
+    """Series specs addressing the columns laid out by ``_select_columns``, and the x position."""
+    x_ref = 0 if has_x else None
+    if selection is None:
+        return (), x_ref
+    series: list[SeriesSpec] = []
+    position = 1 if has_x else 0
+    for pair_x, _, label in selection:
+        pair_ref = None
+        if pair_x is not None:
+            pair_ref, position = position, position + 1
+        series.append(SeriesSpec(x=pair_ref, y=position, label=label))
+        position += 1
+    return tuple(series), x_ref
+
+
+def _relabelled(plan: PlotPlan, labels: Sequence[str], pairs: Sequence[LinePair] | None) -> PlotPlan:
+    if pairs is not None and any(len(pair) == _PAIR_WITH_LABEL for pair in pairs):
         msg = "Specify series labels either in pairs or with labels=, not both"
         raise ValueError(msg)
-    if len(labels) != len(selections):
-        msg = f"plot_lines got {len(labels)} labels for {len(selections)} series"
+    if len(labels) != len(plan.series):
+        msg = f"plot_lines got {len(labels)} labels for {len(plan.series)} series"
         raise ValueError(msg)
-    return [str(label) for label in labels]
+    return plan.with_labels(labels)
 
 
-def _line_columns(df: pd.DataFrame, x: str | None, y: str | Sequence[str] | None) -> list[str]:
-    if y is None:
-        return [column for column in df.columns if column != x]
-    return [y] if isinstance(y, str) else list(y)
-
-
-def _line_labels(df: pd.DataFrame, x: str | None, selections: Sequence[_Selection], xlabel: str | None, ylabel: str | None) -> tuple[str, str]:
-    default_x = str(x if x is not None else df.index.name or "index")
-    # dict.fromkeys names a y column once when several frames repeat it.
-    default_y = ", ".join(dict.fromkeys(str(column) for _, column, _ in selections))
+def _axis_labels(plan: PlotPlan, first: pd.DataFrame, *, x: str | None, xlabel: str | None, ylabel: str | None) -> tuple[str, str]:
+    # Node presentation rule over the resolved plan (the plan's overlay label
+    # names only the first series): the x column, else the first frame's index
+    # name (also for pairs); every distinct y column once.
+    default_x = plan.series[0].x_name if x is not None else str(first.index.name or "index")
+    default_y = ", ".join(dict.fromkeys(entry.y_name for entry in plan.series))
     return xlabel if xlabel is not None else default_x, ylabel if ylabel is not None else default_y
+
+
+def _checked_limits(limits: AxisLimits | None, scale: str, axis: str) -> AxisLimits | None:
+    # Any Matplotlib scale name is accepted; only "log" has the bound > 0 rule.
+    return validate_axis_limits(limits, scale="log" if scale == "log" else "linear", axis=axis)
+
+
+def _apply_limits(ax: Axes, xlim: AxisLimits | None, ylim: AxisLimits | None) -> None:
+    # Limits follow the scale so they are not re-derived by a scale change.
+    if xlim is not None:
+        ax.set_xlim(*xlim)
+    if ylim is not None:
+        ax.set_ylim(*ylim)
 
 
 @node(tags=["builtin", "plot"], version="2.0.0", idempotent=True)
@@ -234,7 +316,8 @@ def plot_scatter(df: pd.DataFrame, out: OutputContext, filename: str, x: str, y:
     """Render a scatter plot for named x and y columns.
 
     The scientific-plot defaults are a headless Agg renderer, 150 DPI, and
-    10-point labels. Output is written under ``out.main_image``.
+    10-point labels. Output is written under ``out.main_image``. The columns
+    are resolved by the Graph Engine planner.
 
     Args:
         df: Source data frame.
@@ -247,15 +330,23 @@ def plot_scatter(df: pd.DataFrame, out: OutputContext, filename: str, x: str, y:
         Path to the rendered plot.
 
     Raises:
-        KeyError: If either named column is absent.
+        PlotRequestError: ``reason="unknown_column"`` if either named column
+            is absent, ``reason="ambiguous_column"`` if several columns carry
+            the name; raised before any figure exists. It is a ``ValueError``.
     """
-    x_values = df[x]
-    y_values = df[y]
+    # Labels, not positions (see _line_plan): x and y become positions 0 and 1.
+    selected = df.iloc[:, [column_position(df, x, "x"), column_position(df, y, "y")]]
+    spec = GraphSpec(
+        x=0, series=(SeriesSpec(y=1),), mark="scatter", layout="overlay", label_style="raw", unit_policy="allow",
+    )
+    plan = build_plot_plan(selected, spec)
+    figure = plan.figures[0]
+    # A pyplot figure, closed below, for the same reason as in plot_lines.
     fig, ax = plt.subplots()
     try:
-        ax.scatter(x_values, y_values)
-        ax.set_xlabel(x, fontsize=_FONT_SIZE)
-        ax.set_ylabel(y, fontsize=_FONT_SIZE)
+        draw_series(ax, plan, plan.series[0], PlotData(frames=(selected,)))
+        ax.set_xlabel(figure.x_label, fontsize=_FONT_SIZE)
+        ax.set_ylabel(figure.y_label, fontsize=_FONT_SIZE)
         return out.write_bytes("main_image", filename, _figure_bytes(fig, filename))
     finally:
         plt.close(fig)

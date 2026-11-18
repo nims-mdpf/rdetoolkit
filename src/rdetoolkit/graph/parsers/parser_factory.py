@@ -1,13 +1,35 @@
 from __future__ import annotations
 
+import importlib
 from pathlib import Path
+from typing import Final
 
 import pandas as pd
 
-from rdetoolkit.graph.parsers.base import CSVParserProtocol
+from rdetoolkit.graph.parsers.base import CSVParser, CSVParserProtocol
 from rdetoolkit.graph.parsers.noheader_parser import NoHeaderParser
 from rdetoolkit.graph.parsers.standard_parser import StandardParser
 from rdetoolkit.graph.parsers.transpose_parser import TransposeParser
+
+
+#: The detector lives in ``rdetoolkit.graph.readers``, which imports this package; it is
+#: loaded on first use so either package can be imported first.
+_DETECTION_MODULE: Final = "rdetoolkit.graph.readers.detection"
+
+
+class _MetaBlockParser:
+    """``CSVParserProtocol`` view of the legacy meta-block format (the frame of ``CSVParser.parse``)."""
+
+    def parse(self, csv_path: Path) -> pd.DataFrame:
+        """Parse ``csv_path`` with ``CSVParser.parse`` and drop the metadata."""
+        return CSVParser.parse(csv_path)[0]
+
+
+_DETECTED_PARSERS: Final[dict[str, type[StandardParser | TransposeParser | NoHeaderParser]]] = {
+    "standard": StandardParser,
+    "transpose": TransposeParser,
+    "noheader": NoHeaderParser,
+}
 
 
 class ParserFactory:
@@ -15,7 +37,7 @@ class ParserFactory:
 
     Supports:
         - Explicit format selection
-        - Auto-detection based on CSV structure (future enhancement)
+        - Conservative auto-detection (``rdetoolkit.graph.readers.detection``)
 
     Example:
         >>> factory = ParserFactory()
@@ -61,44 +83,29 @@ class ParserFactory:
 
     @staticmethod
     def auto_detect(csv_path: Path) -> CSVParserProtocol:
-        """Auto-detect CSV format and return appropriate parser.
+        """Detect the CSV format and return a parser configured for it.
 
-        Detection heuristics:
-            1. Try standard format first (most common)
-            2. Check if transposition improves structure
-            3. Fall back to noheader if headers look like data
+        Uses ``detect_table_format``: a bounded, read-only sample decides the encoding,
+        delimiter, metadata block, header row and transposed layout. Nothing is guessed:
+        a file whose format is not clear raises instead of being read as headerless.
 
         Args:
             csv_path: Path to CSV file
 
         Returns:
-            Best-matching CSVParser implementation
+            The parser of the detected format, reading with the detected encoding and
+            delimiter (a metadata block is parsed like ``CSVParser.parse``).
 
         Raises:
             FileNotFoundError: If CSV file doesn't exist
-
-        Note:
-            This is a basic heuristic. Explicit format specification
-            via create() is recommended when format is known.
+            InvalidCSVFormatError: If the file is empty or too large to sniff
+            AmbiguousFormatError: If the format is ambiguous; the message names the
+                candidates and suggests ``--csv-format`` / ``create(<format>)``
         """
-        if not csv_path.exists():
-            msg = f"CSV file not found: {csv_path}"
-            raise FileNotFoundError(msg)
-
-        try:
-            df = pd.read_csv(csv_path)
-
-            first_row = df.iloc[0] if len(df) > 0 else None
-            if (
-                first_row is not None
-                and first_row.apply(lambda x: isinstance(x, (int, float))).all()
-            ):
-                return NoHeaderParser()
-
-            if all(isinstance(col, (int, float)) for col in df.columns):
-                return NoHeaderParser()
-
-            return StandardParser()
-
-        except (pd.errors.ParserError, ValueError):
-            return NoHeaderParser()
+        detection = importlib.import_module(_DETECTION_MODULE)
+        path = Path(csv_path)
+        decision = detection.detect_table_format(path)
+        reader_id: str = detection.require_selection(path, decision)
+        if reader_id not in _DETECTED_PARSERS:
+            return _MetaBlockParser()
+        return _DETECTED_PARSERS[reader_id](encoding=decision.encoding, delimiter=decision.delimiter)

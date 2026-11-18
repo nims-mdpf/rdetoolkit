@@ -511,6 +511,16 @@ CSVファイルからグラフ(PNG、必要に応じてインタラクティブ�
 python3 -m rdetoolkit plot sample.csv -o data/other_image --title 'XRD pattern'
 ```
 
+v2 で追加されたオプション:
+
+| オプション | 説明 |
+| ---------- | ---- |
+| `--csv-format auto` | ファイル先頭の標本(最大 64 KiB・50 行)を読み取り専用で調べ、形式・文字コード・区切り文字を判定します。判断できないファイルは推測せず、候補とその根拠を示すエラーになります。`--csv-format` には `meta_block` や、エントリーポイント `rdetoolkit.graph.readers` でインストールされた読み取りの ID も指定できます。既定は従来どおり `standard` です |
+| `--detect` | `--csv-format auto` の判定結果(選ばれる読み取り、根拠、列名、行数)を表示し、描画せずに終了コード `0` で終了します |
+| `--xmin`、`--xmax`、`--ymin`、`--ymax` | 軸範囲の片側だけを指定します。もう一方は自動のままです。同じ軸で `--xlim`/`--ylim` と併用した場合や、不正な値(有限でない値、等しい上下限、対数軸での `<= 0`)は使用法エラー(終了コード `2`)です |
+
+受け付けられない依頼(不正な `--mode`、`--mode individual` と `--no-individual` の併用、不正な軸範囲)は、ファイルを書き込む前に失敗します。このコマンドの土台となる Python API は [Graph Engine](structured_process/graph_engine.ja.md) を参照してください。
+
 終了コード: `0` 成功、`1` CSV を読めない、または描画できない場合、`2` コマンドラインが不正。
 
 ### nodes / flows / skeletons / formats: 登録済みコンポーネントの一覧

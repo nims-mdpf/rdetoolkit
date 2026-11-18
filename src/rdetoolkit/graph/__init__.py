@@ -1,14 +1,18 @@
 """Graph module for RDEToolKit.
 
 This module provides functionality for plotting graphs from CSV data with
-various configuration options including direction-based coloring, dual-axis plots,
-and customizable styling.
+various configuration options including direction-based coloring, unit-aware
+overlays and customizable styling. Dual-axis (secondary y axis) plots are not
+supported: ``PlotMode.DUAL_AXIS`` and ``PlotConfig.y2_axis`` remain importable for
+compatibility, but rendering them raises ``PlotRequestError``
+(``reason="dual_axis_unsupported"``).
 
 Every package-root attribute belongs to exactly one tier (the authoritative
 inventory is the export table in ``docs/rdetoolkit/csv2graph.md``):
 
 * supported -- the GA public API (``csv2graph``, ``plot_from_dataframe``, the
-  graph exceptions and the configuration models).
+  graph exceptions, the configuration models and the Graph Engine spec API:
+  ``render_graph``, specs, plans, results, readers, renderers and sinks).
 * compatibility -- helpers the shipped stub already promised; kept in
   ``__all__`` so existing typed imports keep working, but new code should
   import them from their defining submodule.
@@ -45,6 +49,54 @@ _PUBLIC_ATTRS: dict[str, tuple[str, str]] = {
     "PlotConfig": ("rdetoolkit.graph.models", "PlotConfig"),
     "CSVMetadata": ("rdetoolkit.graph.models", "CSVMetadata"),
     "ParsedData": ("rdetoolkit.graph.models", "ParsedData"),
+    # Graph Engine spec API (epic #703, design §3.9), one group per sub-issue.
+    # GE-01
+    "PlotRequestError": ("rdetoolkit.graph.exceptions", "PlotRequestError"),
+    "GraphUserWarning": ("rdetoolkit.graph.exceptions", "GraphUserWarning"),
+    # GE-03 spec API
+    "render_graph": ("rdetoolkit.graph.engine", "render_graph"),
+    "build_plot_plan": ("rdetoolkit.graph.plan", "build_plot_plan"),
+    "GraphSpec": ("rdetoolkit.graph.spec", "GraphSpec"),
+    "SeriesSpec": ("rdetoolkit.graph.spec", "SeriesSpec"),
+    "AxisSpec": ("rdetoolkit.graph.spec", "AxisSpec"),
+    "LegendSpec": ("rdetoolkit.graph.spec", "LegendSpec"),
+    "StyleSpec": ("rdetoolkit.graph.spec", "StyleSpec"),
+    "OutputSpec": ("rdetoolkit.graph.spec", "OutputSpec"),
+    "PlotPlan": ("rdetoolkit.graph.plan", "PlotPlan"),
+    "SeriesPlan": ("rdetoolkit.graph.plan", "SeriesPlan"),
+    "FigurePlan": ("rdetoolkit.graph.plan", "FigurePlan"),
+    "GraphDiagnostic": ("rdetoolkit.graph.plan", "GraphDiagnostic"),
+    "PlotData": ("rdetoolkit.graph.plan", "PlotData"),
+    "GraphResult": ("rdetoolkit.graph.result", "GraphResult"),
+    "Artifact": ("rdetoolkit.graph.result", "Artifact"),
+    # GE-04/05 readers and detection
+    "TableReader": ("rdetoolkit.graph.readers", "TableReader"),
+    "TableData": ("rdetoolkit.graph.readers", "TableData"),
+    "ColumnProvenance": ("rdetoolkit.graph.readers", "ColumnProvenance"),
+    "ReaderRegistry": ("rdetoolkit.graph.readers", "ReaderRegistry"),
+    "builtin_readers": ("rdetoolkit.graph.readers", "builtin_readers"),
+    "discover_readers": ("rdetoolkit.graph.readers", "discover_readers"),
+    "read_table": ("rdetoolkit.graph.readers", "read_table"),
+    "detect_table_format": ("rdetoolkit.graph.readers", "detect_table_format"),
+    "DetectionDecision": ("rdetoolkit.graph.readers", "DetectionDecision"),
+    "FormatCandidate": ("rdetoolkit.graph.readers", "FormatCandidate"),
+    "UnknownReaderError": ("rdetoolkit.graph.exceptions", "UnknownReaderError"),
+    "AmbiguousFormatError": ("rdetoolkit.graph.exceptions", "AmbiguousFormatError"),
+    "DuplicateReaderError": ("rdetoolkit.graph.exceptions", "DuplicateReaderError"),
+    "ReaderPluginError": ("rdetoolkit.graph.exceptions", "ReaderPluginError"),
+    # GE-07 renderers
+    "GraphRenderer": ("rdetoolkit.graph.renderers.base", "GraphRenderer"),
+    "RendererCapabilities": ("rdetoolkit.graph.renderers.base", "RendererCapabilities"),
+    "RendererRegistry": ("rdetoolkit.graph.renderers.registry", "RendererRegistry"),
+    "builtin_renderers": ("rdetoolkit.graph.renderers.registry", "builtin_renderers"),
+    "RendererUnavailableError": ("rdetoolkit.graph.exceptions", "RendererUnavailableError"),
+    "UnsupportedFormatError": ("rdetoolkit.graph.exceptions", "UnsupportedFormatError"),
+    # GE-14 output sinks
+    "ArtifactSink": ("rdetoolkit.graph.outputs", "ArtifactSink"),
+    "DirectorySink": ("rdetoolkit.graph.outputs", "DirectorySink"),
+    "OutputContextSink": ("rdetoolkit.graph.outputs", "OutputContextSink"),
+    "OutputPathError": ("rdetoolkit.graph.exceptions", "OutputPathError"),
+    "ArtifactCollisionError": ("rdetoolkit.graph.exceptions", "ArtifactCollisionError"),
 }
 
 # Promised by the package stub before the GA inventory existed; dropping them
@@ -104,6 +156,48 @@ __all__ = [
     "PlotConfig",
     "CSVMetadata",
     "ParsedData",
+    "PlotRequestError",
+    "GraphUserWarning",
+    "render_graph",
+    "build_plot_plan",
+    "GraphSpec",
+    "SeriesSpec",
+    "AxisSpec",
+    "LegendSpec",
+    "StyleSpec",
+    "OutputSpec",
+    "PlotPlan",
+    "SeriesPlan",
+    "FigurePlan",
+    "GraphDiagnostic",
+    "PlotData",
+    "GraphResult",
+    "Artifact",
+    "TableReader",
+    "TableData",
+    "ColumnProvenance",
+    "ReaderRegistry",
+    "builtin_readers",
+    "discover_readers",
+    "read_table",
+    "detect_table_format",
+    "DetectionDecision",
+    "FormatCandidate",
+    "UnknownReaderError",
+    "AmbiguousFormatError",
+    "DuplicateReaderError",
+    "ReaderPluginError",
+    "GraphRenderer",
+    "RendererCapabilities",
+    "RendererRegistry",
+    "builtin_renderers",
+    "RendererUnavailableError",
+    "UnsupportedFormatError",
+    "ArtifactSink",
+    "DirectorySink",
+    "OutputContextSink",
+    "OutputPathError",
+    "ArtifactCollisionError",
     "titleize",
     "sanitize_filename",
     "to_snake_case",

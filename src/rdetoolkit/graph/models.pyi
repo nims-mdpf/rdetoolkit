@@ -4,6 +4,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Literal
 
+from rdetoolkit.graph.spec import StyleSpec
+
 class PlotMode(str, Enum):
     OVERLAY = 'overlay'
     INDIVIDUAL = 'individual'
@@ -26,9 +28,10 @@ class AxisConfig:
     scale: Literal['linear', 'log'] = ...
     grid: bool = ...
     invert: bool = ...
-    lim: tuple[float, float] | None = ...
+    lim: tuple[float | None, float | None] | None = ...
     tick_format: Literal['auto', 'plain', 'sci', 'eng'] = ...
     scilimits: tuple[int, int] = ...
+    label_origin: Literal['explicit', 'derived'] = ...
 
 @dataclass
 class LegendConfig:
@@ -86,6 +89,7 @@ class PlotConfig:
     x_col: int | str | list[int | str] | None = ...
     y_cols: list[int | str] | None = ...
     direction_cols: list[int | str | None] | None = ...
+    style: StyleSpec | None = ...
 
 @dataclass
 class CSVMetadata:
@@ -102,13 +106,13 @@ class ParsedData:
     series_col: str | None = ...
     direction_col: str | None = ...
 
-@dataclass
+@dataclass(frozen=True)
 class MatplotlibArtifact:
     filename: str
     figure: Any
     metadata: dict[str, Any] | None = ...
 
-@dataclass
+@dataclass(frozen=True)
 class NormalizedColumns:
     x_col: int | list[int]
     y_cols: list[int]
@@ -116,7 +120,7 @@ class NormalizedColumns:
     derived_x_label: str
     derived_y_label: str
 
-@dataclass
+@dataclass(frozen=True)
 class RenderCollections:
     overlay: list[RenderResult]
     individual: list[RenderResult]

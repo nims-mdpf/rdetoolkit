@@ -328,12 +328,18 @@ new_app = _register_new_commands()
 PLOT_HELP = CommandHelp(
     summary="Draw graphs (PNG, optionally interactive HTML) from a CSV file.",
     inputs=(
-        "`CSV_PATH`: a CSV file. `--csv-format standard` (header row, default), `transpose` (series in rows), or `noheader`.",
+        (
+            "`CSV_PATH`: a CSV file. `--csv-format standard` (header row, default), `transpose` (series in rows), `noheader`, "
+            "`meta_block` (leading `#` metadata lines), an installed reader id, or `auto` (detect from the content; "
+            "an unclear file is an error naming the candidates, never a guess). `--detect` prints what `auto` would do "
+            "(reader, evidence, columns, row count) and exits 0 without plotting."
+        ),
         "`--x-col` / `--y-cols`: columns by 0-based index or header name (repeatable); by default the first column is x.",
     ),
     outputs=(
         ("Writes one overlay PNG plus one PNG per series into `-o/--output-dir` (default: the CSV's directory). "
-        "`--mode individual` writes per-series PNGs only; a single-series overlay skips per-series PNGs unless `--individual`."),
+        "`--mode individual` writes per-series PNGs only (combining it with `--no-individual` is a usage error); "
+        "a single-series overlay skips per-series PNGs unless `--individual`."),
         ("`--main-image-dir` sends the overlay to another directory; `--html` also writes interactive HTML into "
         "`--html-output-dir` (default: the CSV's directory). Existing files with the same names are overwritten."),
     ),
@@ -355,6 +361,120 @@ CSV2GRAPH_HELP = CommandHelp(
 )
 
 
+def _reject_contradictory_plot_switches(mode: str, no_individual: bool | None) -> None:
+    """Reject `--mode individual --no-individual`, which can never produce a plot.
+
+    Mirrors ``validate_plot_request`` of the Python API as a usage error (exit 2)
+    so the CLI and the API agree on which requests are invalid.
+
+    Args:
+        mode: Value of ``--mode`` (already checked to be a supported mode).
+        no_individual: Value of ``--no-individual/--individual`` (``None`` = automatic).
+
+    Raises:
+        typer.BadParameter: For individual mode combined with ``--no-individual``.
+    """
+    if mode == "individual" and no_individual is True:
+        msg = "--mode individual cannot be combined with --no-individual: no plot would be produced"
+        raise typer.BadParameter(msg, param_hint="--no-individual")
+
+
+def _plot_axis_limits(
+    axis: str,
+    *,
+    limits: tuple[float, float] | None,
+    lower: float | None,
+    upper: float | None,
+    log: bool,
+) -> tuple[float | None, float | None] | None:
+    """Combine `--{axis}lim` or `--{axis}min/--{axis}max` into one validated limit pair.
+
+    The one-sided options exist because a click tuple option needs both values; a
+    side left out stays automatic. Validation is the same as the Python API's, but
+    reported as a usage error (exit 2) naming the offending option.
+
+    Args:
+        axis: ``"x"`` or ``"y"``.
+        limits: Value of ``--{axis}lim`` (both bounds) or ``None``.
+        lower: Value of ``--{axis}min`` or ``None``.
+        upper: Value of ``--{axis}max`` or ``None``.
+        log: Whether the axis uses a log scale (``--log{axis}``).
+
+    Returns:
+        The validated ``(min, max)`` pair (a ``None`` side stays automatic), or ``None``.
+
+    Raises:
+        typer.BadParameter: When ``--{axis}lim`` is combined with a one-sided option,
+            or the limits are invalid (non-finite, equal, or ``<= 0`` on a log axis).
+    """
+    from rdetoolkit.graph.exceptions import PlotRequestError
+    from rdetoolkit.graph.validation import validate_axis_limits
+
+    hint = _axis_limit_option_hint(axis, limits=limits, lower=lower, upper=upper)
+    requested = limits if limits is not None else (lower, upper)
+    try:
+        return validate_axis_limits(requested, scale="log" if log else "linear", axis=axis)
+    except PlotRequestError as exc:
+        raise typer.BadParameter(str(exc), param_hint=hint) from exc
+
+
+def _axis_limit_option_hint(
+    axis: str,
+    *,
+    limits: tuple[float, float] | None,
+    lower: float | None,
+    upper: float | None,
+) -> str:
+    """Return the option names that carried the limits, rejecting `--{axis}lim` mixed with a one-sided option.
+
+    Args:
+        axis: ``"x"`` or ``"y"``.
+        limits: Value of ``--{axis}lim`` or ``None``.
+        lower: Value of ``--{axis}min`` or ``None``.
+        upper: Value of ``--{axis}max`` or ``None``.
+
+    Returns:
+        The ``param_hint`` naming the options the user gave for this axis.
+
+    Raises:
+        typer.BadParameter: When ``--{axis}lim`` is combined with ``--{axis}min``/``--{axis}max``.
+    """
+    given = " / ".join(f"--{axis}{side}" for side, value in (("min", lower), ("max", upper)) if value is not None)
+    if limits is None:
+        return given
+    if given:
+        msg = f"--{axis}lim cannot be combined with {given}; give both bounds with --{axis}lim or one side with --{axis}min/--{axis}max"
+        raise typer.BadParameter(msg, param_hint=given)
+    return f"--{axis}lim"
+
+
+def _validate_csv_format(csv_format: str) -> None:
+    """Accept a builtin reader id, ``auto``, or the id of an installed reader entry point.
+
+    Entry points are consulted only for an id that is not builtin, so the legacy
+    formats never depend on installed plugins.
+
+    Args:
+        csv_format: Value of ``--csv-format``.
+
+    Raises:
+        typer.BadParameter: For an id registered nowhere, or conflicting reader entry points.
+    """
+    from rdetoolkit.graph.exceptions import DuplicateReaderError
+    from rdetoolkit.graph.readers import builtin_readers, discover_readers
+
+    known = {"auto", *builtin_readers().ids()}
+    if csv_format in known:
+        return
+    try:
+        known.update(discover_readers().ids())
+    except DuplicateReaderError as exc:
+        raise typer.BadParameter(str(exc), param_hint="--csv-format") from exc
+    if csv_format not in known:
+        msg = f"Invalid csv-format: {csv_format}. Choose from {sorted(known)}"
+        raise typer.BadParameter(msg, param_hint="--csv-format")
+
+
 @app.command("plot", help=PLOT_HELP.render(), short_help=PLOT_HELP.summary, rich_help_panel=PANEL_GENERATE)
 def plot(
     csv_path: Annotated[Path, typer.Argument(metavar="CSV_PATH", help="Path to CSV file", exists=False, dir_okay=False)],
@@ -365,7 +485,10 @@ def plot(
     logy: Annotated[bool, typer.Option("--logy", help="Use log scale for Y axis")] = False,
     logx: Annotated[bool, typer.Option("--logx", help="Use log scale for X axis")] = False,
     html: Annotated[bool, typer.Option("--html", help="Generate interactive HTML output")] = False,
-    mode: Annotated[str, typer.Option("--mode", help="Plotting mode")] = "overlay",
+    mode: Annotated[
+        str,
+        typer.Option("--mode", help="Plotting mode: overlay or individual (dual-axis is not supported)"),
+    ] = "overlay",
     x_col: Annotated[list[str] | None, typer.Option("--x-col", help="X-axis column(s) - index or name")] = None,
     y_cols: Annotated[list[str] | None, typer.Option("--y-cols", help="Y-axis column(s) - index or name")] = None,
     direction_cols: Annotated[list[str] | None, typer.Option("--direction-cols", help="Direction column(s)")] = None,
@@ -405,19 +528,18 @@ def plot(
     ] = None,
     x_tick_format: Annotated[str, typer.Option("--x-tick-format", help="X-axis tick label format: auto, plain, sci, or eng")] = "auto",
     y_tick_format: Annotated[str, typer.Option("--y-tick-format", help="Y-axis tick label format: auto, plain, sci, or eng")] = "auto",
+    xmin: Annotated[float | None, typer.Option("--xmin", help="X-axis lower limit only; the upper side stays automatic")] = None,
+    xmax: Annotated[float | None, typer.Option("--xmax", help="X-axis upper limit only; the lower side stays automatic")] = None,
+    ymin: Annotated[float | None, typer.Option("--ymin", help="Y-axis lower limit only; the upper side stays automatic")] = None,
+    ymax: Annotated[float | None, typer.Option("--ymax", help="Y-axis upper limit only; the lower side stays automatic")] = None,
+    detect: Annotated[bool, typer.Option("--detect", help="Print how --csv-format auto would read CSV_PATH and exit without plotting")] = False,
 ) -> None:
     """Generate graphs from CSV files."""
     # Lazy imports
     from typing import Literal, cast
     from rdetoolkit.cmd.csv2graph import Csv2GraphCommand
 
-    # Validate csv_format
-    if csv_format not in ["standard", "transpose", "noheader"]:
-        msg = f"Invalid csv-format: {csv_format}. Choose from ['standard', 'transpose', 'noheader']"
-        raise typer.BadParameter(
-            msg,
-            param_hint="--csv-format",
-        )
+    _validate_csv_format(csv_format)
 
     # Validate mode
     if mode not in ["overlay", "individual"]:
@@ -426,6 +548,7 @@ def plot(
             msg,
             param_hint="--mode",
         )
+    _reject_contradictory_plot_switches(mode, no_individual)
 
     # Validate legend_policy
     valid_legend_policies = [
@@ -447,6 +570,9 @@ def plot(
         msg = f"Invalid y-tick-format: {y_tick_format}. Choose from ['auto', 'plain', 'sci', 'eng']"
         raise typer.BadParameter(msg, param_hint="--y-tick-format")
 
+    resolved_xlim = _plot_axis_limits("x", limits=xlim, lower=xmin, upper=xmax, log=logx)
+    resolved_ylim = _plot_axis_limits("y", limits=ylim, lower=ymin, upper=ymax, log=logy)
+
     # Parse column specifications
     parsed_x_col = [parse_column(c) for c in x_col] if x_col else None
     parsed_y_cols = [parse_column(c) for c in y_cols] if y_cols else None
@@ -467,7 +593,7 @@ def plot(
         output_dir=output_dir,
         main_image_dir=main_image_dir,
         html_output_dir=html_output_dir,
-        csv_format=cast(Literal["standard", "transpose", "noheader"], csv_format),
+        csv_format=csv_format,
         logy=logy,
         logx=logx,
         html=html,
@@ -480,8 +606,8 @@ def plot(
         title=title,
         legend_info=legend_info,
         legend_loc=legend_loc,
-        xlim=xlim,
-        ylim=ylim,
+        xlim=resolved_xlim,
+        ylim=resolved_ylim,
         grid=grid,
         invert_x=invert_x,
         invert_y=invert_y,
@@ -496,6 +622,7 @@ def plot(
         legend_ncol=legend_ncol,
         x_tick_format=cast(Literal["auto", "plain", "sci", "eng"], x_tick_format),
         y_tick_format=cast(Literal["auto", "plain", "sci", "eng"], y_tick_format),
+        detect=detect,
     )
     cmd.invoke()
 

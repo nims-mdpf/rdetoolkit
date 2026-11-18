@@ -39,6 +39,39 @@ class PathValidator:
             - Ensures output stays within output_dir
             - Validates directory existence and permissions
         """
+        full_path = self.resolve_within(output_dir, filename)
+        output_dir = output_dir.resolve()
+
+        if not output_dir.exists():
+            msg = f"Output directory does not exist: {output_dir}"
+            raise ValueError(msg)
+
+        if not output_dir.is_dir():
+            msg = f"Output path is not a directory: {output_dir}"
+            raise ValueError(msg)
+
+        return full_path
+
+    def resolve_within(self, output_dir: Path, filename: str) -> Path:
+        """Resolve ``filename`` inside ``output_dir`` and prove it stays there.
+
+        Containment is decided on path components (``Path.relative_to``), never on a
+        string prefix: ``/out2/x`` is outside ``/out`` although its text starts with
+        ``/out``, which matters when a symlink inside the directory points to a
+        sibling. The directory does not have to exist, so every destination of a
+        run can be checked before anything is written.
+
+        Args:
+            output_dir: Directory the file must stay in.
+            filename: Name of the file (without directory).
+
+        Returns:
+            The fully resolved destination (symlinks followed).
+
+        Raises:
+            ValueError: If the name contains a separator or ``..``, or the resolved
+                destination is outside the resolved directory.
+        """
         output_dir = output_dir.resolve()
 
         if ".." in filename or "/" in filename or "\\" in filename:
@@ -50,20 +83,14 @@ class PathValidator:
 
         full_path = (output_dir / filename).resolve()
 
-        if not str(full_path).startswith(str(output_dir)):
+        try:
+            full_path.relative_to(output_dir)
+        except ValueError:
             msg = (
                 "Security violation: "
                 f"{filename!r} would write outside output directory"
             )
-            raise ValueError(msg)
-
-        if not output_dir.exists():
-            msg = f"Output directory does not exist: {output_dir}"
-            raise ValueError(msg)
-
-        if not output_dir.is_dir():
-            msg = f"Output path is not a directory: {output_dir}"
-            raise ValueError(msg)
+            raise ValueError(msg) from None
 
         return full_path
 

@@ -694,6 +694,95 @@ For the run-level invoice row, rely on the seeded tile invoice for registration
 values and compute any tile-specific value inside that tile's flow, then write it
 with `save_invoice`.
 
+### csv2graph / Graph Engine
+
+Every intentional behaviour change of the graph entry points has a stable id, IC-1 to
+IC-16. The tables below are grouped by topic, and the rows of each table are ordered by
+id. The spec-first API (`render_graph`, `GraphSpec`, custom readers and renderers) is
+described in [Graph Engine](usage/structured_process/graph_engine.en.md).
+
+`csv2graph`, `plot_from_dataframe` and `rdetoolkit plot` validate the request before
+any figure is drawn. The requests below raise `PlotRequestError`, which is a
+`PlotConfigError` and also a `ValueError`, so existing code that catches `ValueError`
+keeps working; its `reason` attribute tells the cases apart. The error is raised
+before any file or directory is created. The CLI reports the same conditions as a
+usage error with exit code 2.
+
+| Id | Change | v1 | v2 | What to do |
+|---|---|---|---|---|
+| IC-1 | `mode` is neither `"overlay"` nor `"individual"` (including a different case or `"dual_axis"`) | Plotted as individual figures | `PlotRequestError` (`reason="invalid_mode"`) | Pass a valid `mode` |
+| IC-2 | `mode="individual"` together with `no_individual=True` (`--mode individual --no-individual` on the CLI) | Finished without writing anything | `PlotRequestError` (`reason="contradictory_switches"`); exit code 2 on the CLI | Drop one of the two |
+
+A table without columns still raises `ColumnNotFoundError`, and a table without a
+y series still raises `ValueError`, as before.
+
+Individual figure file names are reserved for every series before the first figure is
+drawn, so no artifact of a run overwrites another one:
+
+| Id | Change | v1 | v2 | What to do |
+|---|---|---|---|---|
+| IC-3 | Two series whose individual file names differ only by case, spacing or Unicode normalization (for example `Voltage` and `voltage`, or `A B` and `A_B`), or a header containing `/`, `\` or `..` | The later figure overwrote the earlier one; an unsafe header failed after the overlay image was written | Every colliding series gets its series id appended (`plot_voltage_s000.png`, `plot_voltage_s001.png`) and a `GraphUserWarning` is emitted; unsafe characters become `_`. Names that do not collide are unchanged | Rename the columns if you need specific file names |
+
+Axis limits are validated by one rule shared by `csv2graph`, `plot_from_dataframe`,
+`rdetoolkit plot` and `GraphSpec` (`AxisSpec.limits`). A `None` side keeps the
+automatic limit, so `xlim=(0, None)` fixes only the lower bound. Reversed bounds
+(`min > max`) are still accepted and invert the axis. On the CLI, `--xmin`, `--xmax`,
+`--ymin` and `--ymax` set one side each; combining one of them with `--xlim`/`--ylim`
+on the same axis is a usage error (exit code 2). The same table lists the changes to
+Matplotlib style and figure ownership (IC-5), mixed-unit overlays (IC-6), dual-axis
+plotting (IC-7) and the figure size and style options (IC-10).
+
+| Id | Change | v1 | v2 | What to do |
+|---|---|---|---|---|
+| IC-4 | One-sided `xlim`/`ylim` such as `(0, None)` or `(None, 10)`; limits with a non-finite bound, equal bounds, or a bound `<= 0` on a log axis (`logx`/`logy`) | One-sided limits were dropped (both sides automatic); invalid limits were passed to Matplotlib, which ignored them with a warning | The given side is applied and the other side stays automatic; invalid limits raise `PlotRequestError` (`reason="invalid_axis_limits"`) naming the axis and the bound, before anything is written; exit code 2 on the CLI | Omit the limit to get the old fully automatic result; pass positive bounds on a log axis |
+| IC-5 | Matplotlib style and figure handles after `csv2graph`, `plot_from_dataframe` or `rdetoolkit plot` | The graph style (`font.size` 20, inward ticks and more) stayed in the process-wide `rcParams` and changed later plots; every figure stayed open, also after a failed save | The style applies only while the figures are drawn and saved, and `rcParams` are unchanged afterwards. Saved figures are closed, also when writing fails. Figures returned with `return_fig=True` stay open, belong to the caller (close them with `plt.close`) and have their layout frozen; saved at 300 dpi they match the previous image. The backend is never switched | Call `apply_matplotlib_config()` before plotting if later plots relied on the old global style |
+| IC-6 | Series with different units in one overlay of `csv2graph`, `plot_from_dataframe` or `rdetoolkit plot` (for example `voltage (V)` and `current (A)`), without `y_label` | The y axis was labelled after the first column only (`Voltage (V)`), on the overlay and on every individual figure | The overlay is still drawn, but a `GraphUserWarning` is emitted and the y label lists every unit (`Voltage (V) / Current (A)`); every individual figure is labelled after its own column (`Current (A)`). Units are compared as text and never converted (`mV` and `V` differ); a column without a unit is assumed compatible and is not converted. `render_graph` rejects the same overlay by default with `PlotRequestError` (`reason="unit_mismatch"`) and offers `GraphSpec(unit_policy="split")` (one overlay per unit), `"warn"` and `"allow"` | Pass `y_label=` to use one label on every figure, or plot the units separately |
+| IC-7 | Rendering a legacy `PlotConfig` with `PlotMode.DUAL_AXIS` or a `y2_axis` (for example `collect_render_results(df, config, PlotMode.DUAL_AXIS)`, `MatplotlibRenderer.render_overlay`, `PlotlyRenderer.render_html` or the render strategies) | `collect_render_results` with `PlotMode.DUAL_AXIS` silently drew individual figures instead; a `y2_axis` was ignored; `DualAxisStrategy` raised `PlotConfigError` | Dual-axis plotting is not supported. `PlotRequestError` (`reason="dual_axis_unsupported"`, still a `PlotConfigError`) is raised before any figure or file exists, with no fallback; the message names the alternatives. `PlotMode.DUAL_AXIS`, `set_y2_axis`, `y2_axis`, `DualAxisStrategy` and `DualAxisError` stay importable, but `DualAxisStrategy` is no longer in `rdetoolkit.graph.strategies.__all__`. `mode="dual_axis"` on `csv2graph`, `plot_from_dataframe` and `rdetoolkit plot` stays an invalid mode (IC-1) | Plot the units separately: `render_graph` with `GraphSpec(unit_policy="split")`, `mode="individual"`, or a Matplotlib figure with `Axes.twinx()` saved by the `save_figure` node |
+| IC-10 | `PlotConfigBuilder.set_figure_size(...)` or `set_matplotlib_params(...)` before `build()`, with the config rendered by `MatplotlibRenderer` or the render strategies; `GraphSpec.style` with `render_graph` | Both setters were ignored: every figure was 8.85 x 8 inches with the graph house style | The built `PlotConfig.style` (a `StyleSpec`) sets the figure size and applies the rcParams over the house style, for that call's figures only; HTML gets the size only when it was set. An invalid size or rcParam raises `PlotRequestError` (`reason="invalid_figure_size"` or `"invalid_rc_param"`) before a figure is created; the setters themselves still accept any value | Do not call the setters to keep the previous figures |
+
+Matplotlib (PNG/SVG/PDF) and Plotly (HTML) figures are drawn from one resolved series
+plan: column positions, x/y pairing, direction splits and filters, legend entries and
+series colours are decided once, before anything is drawn, so an invalid column
+selection fails before a figure exists. Legend labels keep their v1 form on each
+backend (humanized in images, as written in HTML).
+
+| Id | Change | v1 | v2 | What to do |
+|---|---|---|---|---|
+| IC-11 | Two y columns sharing one header, selected by position or by default; a direct `PlotlyRenderer.render_html` call with fewer `direction_cols` than `y_cols`; series with equal legend labels | The shared header raised `ValueError` ("resolved to a slice"); Plotly raised `ValueError` for the short direction list; HTML listed every series with an equal label and gave them one colour | Both columns are plotted with their own data; the short direction list is padded (the missing series have no direction column), as in images; an equal label is listed once and colours follow the series position in images and HTML alike. Addressing a shared header by name raises `PlotRequestError` (`reason="ambiguous_column"`) | None needed; give the columns distinct names or labels to tell them apart in the legend |
+
+Renderers are replaceable. Pass a `RendererRegistry` as `renderers` to `render_graph` and every artifact goes to the first registered renderer whose `RendererCapabilities` declare its format and figure kind. Any object implementing the `GraphRenderer` protocol (`capabilities`, `render`, `export`, `close`) can be registered, without changing rdetoolkit internals. Without the argument, each call uses a new `builtin_renderers()` registry (Matplotlib for images, Plotly for overlay HTML). An unsupported format, HTML for individual figures, or HTML without Plotly installed raises `UnsupportedFormatError` or `RendererUnavailableError` (an `ImportError` that names `pip install "rdetoolkit[plotly]"`) before any file or directory is created. With `html=True`, `csv2graph` and `plot_from_dataframe` also check for Plotly before drawing anything. Without Plotly they already failed with an `ImportError` before writing any file, so code catching `ImportError` keeps working.
+
+Automatic format detection (`csv_format="auto"`, `--csv-format auto`, and the default
+`reader="auto"` of `render_graph`) reads only a bounded sample of the file (at most
+64 KiB and 50 rows), never writes to it, and returns its reasoning as a
+`DetectionDecision`. A file it is not confident about is an error, not a guess. The
+default of `csv2graph` and `rdetoolkit plot` stays `standard`. `rdetoolkit plot --detect`
+shows the decision (selected reader, evidence, column names, row count) without plotting.
+
+| Id | Change | v1 | v2 | What to do |
+|---|---|---|---|---|
+| IC-8 | `ParserFactory.auto_detect` on a file whose format is unclear, such as a fully numeric first row or a first row mixing text and numbers | Guessed the headerless format (`NoHeaderParser`); a headered file whose first data row is numeric also had its header read as data | Raises `AmbiguousFormatError` whose message lists the candidates, their evidence and the remedy (`--csv-format`). A headered file is read with its header, and transposed, tab-separated, Shift-JIS and metadata-block files get a matching parser. An empty file raises `InvalidCSVFormatError` | Name the format (`ParserFactory.create(...)`, `csv_format=...`, `--csv-format ...`) |
+
+The destinations of `render_graph` are set with `OutputSpec(sink=...)`: `DirectorySink` writes into plain directories and `OutputContextSink` into the directories of an RDE `OutputContext`.
+Routing follows the legacy csv2graph: overlay images go to `main_image`, individual images to the individual directory (`other_image` for `OutputContextSink`) and HTML to the HTML directory (`struct` for `OutputContextSink`).
+Images (PNG, SVG, PDF) can be written for overlay and individual figures, HTML for overlay figures only. Any other combination raises `UnsupportedFormatError` before anything is written; HTML without Plotly raises `RendererUnavailableError` (an `ImportError` naming the install command).
+Destinations are checked by name and by real path (symlink targets included); one outside its directory raises `OutputPathError` (a `ValueError`). Existing files are overwritten by default and recorded in `Artifact.replaced_existing`; `OutputSpec(on_existing="error")` raises `ArtifactCollisionError` before rendering.
+`GraphResult.manifest_json()` lists every artifact in plan order by file name only (with the table-format detection as a structured object). The same request gives the same text whatever the output directory, and the same HTML bytes.
+
+| Id | Change | v1 | v2 | What to do |
+|---|---|---|---|---|
+| IC-9 | A destination file is a symlink into a different directory whose path starts with the same text as the output directory (for example `out2` for `out`), in the `PathValidator` used by `csv2graph`, `plot_from_dataframe`, `rdetoolkit plot` and `FileWriter` | Accepted as inside, because containment was a string prefix comparison | Containment is decided on path components and raises `ValueError` ("Security violation"). The legacy saver checks every destination before it writes the first file | None (security fix) |
+| IC-13 | `IndividualStrategy` with image formats other than PNG in `OutputConfig.formats` (for example `["png", "svg"]`) | Individual figures were always PNG only | One file per series in every non-HTML format (same name, different extension); PNG when no image format is requested. `csv2graph` and `plot_from_dataframe` output is unchanged | Pass `formats=["png"]` for PNG only |
+| IC-14 | HTML output (`html=True`, `PlotlyRenderer`, `render_graph`) with `xlim`/`ylim` (or `AxisSpec.limits`) | The HTML axes ignored the limits and stayed automatic | The HTML axes use the same limits as the images (in log10 units on a log axis); a `None` side stays automatic | Omit the limits for automatic axes |
+| IC-15 | `MatplotlibRenderer.render_individual(df, config, y_col_index)` with a `y_col_index` beyond the frame's columns | `IndexError` from pandas, raised while drawing | `PlotRequestError` (`reason="unknown_column"`, a `ValueError`, not an `IndexError`) before a figure is created. A column that exists but is not in `config.y_cols` is still drawn, as in v1 | Catch `ValueError` or `PlotRequestError` instead of `IndexError` |
+| IC-16 | HTML output (`html=True`, `PlotlyRenderer`, `render_graph`) with `invert_x`/`invert_y` (or `AxisSpec.invert`) | The HTML axes ignored the inversion and kept their normal direction, while the images were inverted | The HTML axes are reversed like the images: automatic axes are reversed, explicit limits give the reversed range (in log10 units on a log axis), and a `None` side stays automatic | Do not pass `invert_x`/`invert_y` to keep the normal direction |
+
+The builtin `plot_lines` and `plot_scatter` nodes resolve columns, pairs, several frames and series labels, and validate axis limits, with the same planner and validator as `render_graph`. The same request therefore gives the same series, labels and data through both APIs. Node ids, arguments, call-log records, output locations and images are unchanged, and no csv2graph style is applied. `save_figure` still saves the caller's figure without closing it.
+
+| Id | Change | v2 pre-release | v2 | What to do |
+|---|---|---|---|---|
+| IC-12 | A column name that no column, or several columns, carry passed to `plot_lines` or `plot_scatter`; invalid `xlim`/`ylim` passed to `plot_lines` (a non-finite bound, equal bounds, or a bound `<= 0` on a `"log"` axis) | A missing column raised `KeyError`; a duplicated name drew every matching column under one label in `plot_lines` and raised a Matplotlib `ValueError` in `plot_scatter`; invalid limits were passed to Matplotlib, which ignored or widened them with a warning | `PlotRequestError` (a `ValueError`) before any figure exists, with `reason` `"unknown_column"`, `"ambiguous_column"` or `"invalid_axis_limits"` | Catch `ValueError` or `PlotRequestError` instead of `KeyError`; give columns unique names and pass positive bounds on a log axis |
+
 ### Diagnostics and legacy tracebacks
 
 For v2 troubleshooting, with or without a coding agent, use

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 
 class GraphPlottingError(Exception):
     """Base exception for graph plotting errors."""
@@ -48,10 +50,12 @@ class DirectionError(GraphPlottingError):
 
 
 class DualAxisError(GraphPlottingError):
-    """Raised when dual axis configuration is invalid.
+    """Legacy error type for dual-axis configuration, kept for import compatibility.
 
-    This addresses the critical IndexError bug in dual_axis mode
-    identified in review_cc.md (致命的).
+    Dual-axis plotting is not supported (GE-12): rendering a ``PlotMode.DUAL_AXIS``
+    config or a ``y2_axis`` raises ``PlotRequestError`` with
+    ``reason="dual_axis_unsupported"`` instead. rdetoolkit itself no longer raises
+    this type.
     """
 
 
@@ -61,3 +65,85 @@ class PlotConfigError(GraphPlottingError):
 
 class RendererError(GraphPlottingError):
     """Raised when rendering fails."""
+
+
+class PlotRequestError(PlotConfigError, ValueError):
+    """Raised when a plot request is invalid before anything is rendered or written.
+
+    It is a ``PlotConfigError`` for graph-aware callers and a ``ValueError`` so that
+    callers catching the builtin type (for example the CLI command) keep working.
+
+    Args:
+        message: Human-readable description of the problem.
+        reason: Stable machine-readable identifier, for example ``"invalid_mode"``,
+            ``"contradictory_switches"`` or ``"no_figures"``.
+    """
+
+    def __init__(self, message: str, *, reason: str) -> None:
+        """Initialize PlotRequestError.
+
+        Args:
+            message: Human-readable description of the problem.
+            reason: Stable machine-readable identifier of the problem.
+        """
+        self.reason = reason
+        super().__init__(message)
+
+
+class GraphUserWarning(UserWarning):
+    """Warning category for graph requests that succeed with a caveat."""
+
+
+class UnknownReaderError(InvalidCSVFormatError, ValueError):
+    """Raised when a table reader id is not registered.
+
+    The message starts with ``"Unsupported CSV format: "`` like the legacy
+    ``ParserFactory`` error, which callers may match.
+    """
+
+
+class AmbiguousFormatError(InvalidCSVFormatError, ValueError):
+    """Raised when automatic table-format detection cannot choose a reader.
+
+    Args:
+        message: Explanation naming the candidates, their evidence and the remedy.
+        decision: The detection decision that was ambiguous.
+    """
+
+    def __init__(self, message: str, *, decision: Any) -> None:
+        """Initialize AmbiguousFormatError.
+
+        Args:
+            message: Explanation naming the candidates, their evidence and the remedy.
+            decision: The detection decision that was ambiguous.
+        """
+        self.decision = decision
+        super().__init__(message)
+
+
+class DuplicateReaderError(GraphPlottingError, ValueError):
+    """Raised when two table readers claim the same id."""
+
+
+class ReaderPluginError(GraphPlottingError):
+    """Raised when a requested reader plugin cannot be loaded."""
+
+
+class RendererUnavailableError(RendererError, ImportError):
+    """Raised when a renderer's optional dependency is not installed."""
+
+
+class UnsupportedFormatError(RendererError, ValueError):
+    """Raised when no renderer supports an output format for a figure kind."""
+
+
+class OutputPathError(GraphPlottingError, ValueError):
+    """Raised when an artifact destination is unsafe or unusable.
+
+    Messages keep the legacy ``PathValidator`` wording (for example
+    ``"contains path separators"`` or ``"Output path is not a directory"``).
+    """
+
+
+class ArtifactCollisionError(GraphPlottingError, ValueError):
+    """Raised when artifact destinations clash, before anything is rendered."""

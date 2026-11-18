@@ -4,11 +4,13 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 
+import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
+
 from rdetoolkit.graph.config import (
     PlotConfigBuilder,
     determine_formats,
     determine_titles,
-    normalize_axis_limits,
 )
 from rdetoolkit.graph.io.file_writer import FileWriter
 from rdetoolkit.graph.io.path_validator import PathValidator
@@ -16,20 +18,26 @@ from rdetoolkit.graph.models import (
     AxisConfig,
     DirectionConfig,
     LegendConfig,
+    MatplotlibArtifact,
     NormalizedColumns,
     OutputConfig,
     PlotConfig,
     PlotMode,
     RenderCollections,
+    RenderResult,
     build_direction_config,
     normalize_direction_filter,
 )
-from rdetoolkit.graph.normalizers import resolve_column_index, validate_column_specs
+from rdetoolkit.graph.exceptions import PlotRequestError
+from rdetoolkit.graph.normalizers import ColumnNormalizer
+from rdetoolkit.graph.renderers.mpl_runtime import detach_figure, style_scope
+from rdetoolkit.graph.strategies.all_graphs import builtin_html_renderer
 from rdetoolkit.graph.strategies.render_coordinator import (
     build_matplotlib_artifacts,
     collect_render_results,
 )
 from rdetoolkit.graph.textutils import parse_header
+from rdetoolkit.graph.validation import validate_axis_limits, validate_plot_request
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -70,25 +78,33 @@ def _normalize_columns(
     y_cols: int | str | list[int | str] | None,
     direction_cols: int | str | list[int | str] | None,
 ) -> NormalizedColumns:
-    """Validate and normalize column specifications for plotting."""
-    normalized_y_cols = _normalize_y_specs(y_cols)
-    column_specs = validate_column_specs(
-        df,
-        x_col=x_col,
-        y_cols=normalized_y_cols,
-        direction_cols=direction_cols,
-    )
+    """Validate and normalize column specifications for plotting.
 
-    if not column_specs["pairs"]:
+    Columns are resolved to positions and never round-trip through their labels, so
+    duplicate headers plot when addressed by position or by the default selection,
+    while a label carried by several columns is rejected as ambiguous (GE-06).
+
+    Raises:
+        ColumnNotFoundError: For an unknown label or an out-of-range position.
+        TypeError: For a column spec that is neither ``int`` nor ``str``.
+        PlotRequestError: ``reason="ambiguous_column"`` for a label on several columns.
+        ValueError: If x and y cannot be paired ("must be equal"), there are more
+            direction columns than y columns ("cannot exceed"), or no y column remains.
+    """
+    normalizer = ColumnNormalizer(df)
+    x_positions = _column_positions(df, normalizer, 0 if x_col is None else x_col)
+    normalized_y_specs = _normalize_y_specs(y_cols)
+    if normalized_y_specs is None:
+        excluded = set(x_positions)
+        pair_y_indices = [position for position in range(df.shape[1]) if position not in excluded]
+    else:
+        pair_y_indices = _column_positions(df, normalizer, normalized_y_specs)
+    pair_x_indices = _pair_x_positions(x_positions, pair_y_indices)
+    direction_indices = _direction_positions(df, normalizer, direction_cols, len(pair_y_indices))
+
+    if not pair_y_indices:
         msg = "DataFrame must have at least one y column for plotting"
         raise ValueError(msg)
-
-    pair_x_indices = [
-        resolve_column_index(df, x_name) for x_name, _ in column_specs["pairs"]
-    ]
-    pair_y_indices = [
-        resolve_column_index(df, y_name) for _, y_name in column_specs["pairs"]
-    ]
 
     config_x_col: int | list[int]
     config_x_col = (
@@ -100,28 +116,89 @@ def _normalize_columns(
     parsed_headers = _parse_headers(df)
     first_x_idx = pair_x_indices[0]
     first_y_idx = pair_y_indices[0]
-    derived_x_label = _format_axis_label(
-        df.columns[first_x_idx],
-        parsed_headers[first_x_idx] if first_x_idx < len(parsed_headers) else None,
-    )
-    derived_y_label = _format_axis_label(
-        df.columns[first_y_idx],
-        parsed_headers[first_y_idx] if first_y_idx < len(parsed_headers) else None,
-    )
+    derived_x_label = _format_axis_label(df.columns[first_x_idx], parsed_headers[first_x_idx])
+    derived_y_label = _format_axis_label(df.columns[first_y_idx], parsed_headers[first_y_idx])
 
     return NormalizedColumns(
         x_col=config_x_col,
         y_cols=pair_y_indices,
-        direction_cols=list(column_specs["direction_cols"]),
+        direction_cols=list(direction_indices),
         derived_x_label=derived_x_label,
         derived_y_label=derived_y_label,
     )
 
 
+def _column_positions(
+    df: pd.DataFrame,
+    normalizer: ColumnNormalizer,
+    spec: int | str | Sequence[int | str],
+) -> list[int]:
+    """Resolve one spec or a sequence of specs to column positions."""
+    if isinstance(spec, (int, str)):
+        return [_column_position(df, normalizer, spec)]
+    if isinstance(spec, Sequence) and not isinstance(spec, bytes):
+        return [_column_position(df, normalizer, item) for item in spec]
+    msg = f"Invalid column specification type: {type(spec)}"
+    raise TypeError(msg)
+
+
+def _column_position(df: pd.DataFrame, normalizer: ColumnNormalizer, spec: int | str) -> int:
+    """One position; the legacy error types for unknown columns, a typed error for ambiguous labels."""
+    position = normalizer.to_index(spec)
+    if isinstance(spec, str):
+        matches = [index for index, label in enumerate(df.columns) if label == spec]
+        if len(matches) > 1:
+            msg = f"column {spec!r} matches columns {matches}; address one of them by position"
+            raise PlotRequestError(msg, reason="ambiguous_column")
+    return position
+
+
+def _pair_x_positions(x_positions: list[int], y_positions: list[int]) -> list[int]:
+    """One x position per y: a single x is shared, otherwise the counts must match."""
+    if len(x_positions) == 1:
+        return x_positions * len(y_positions)
+    if len(x_positions) == len(y_positions):
+        return x_positions
+    msg = (
+        f"x_col length ({len(x_positions)}) and y_cols length ({len(y_positions)}) "
+        f"must be equal or x_col must be a single column"
+    )
+    raise ValueError(msg)
+
+
+def _direction_positions(
+    df: pd.DataFrame,
+    normalizer: ColumnNormalizer,
+    direction_cols: int | str | Sequence[int | str | None] | None,
+    y_count: int,
+) -> list[int | None]:
+    """One direction position (or ``None``) per y; a shorter list is padded with ``None``."""
+    if direction_cols is None:
+        return [None] * y_count
+    specs = [direction_cols] if isinstance(direction_cols, (int, str)) else list(direction_cols)
+    positions: list[int | None] = []
+    for spec in specs:
+        if spec is None:
+            positions.append(None)
+        elif isinstance(spec, (int, str)):
+            positions.append(_column_position(df, normalizer, spec))
+        else:
+            msg = f"Direction column specification must be int, str, or None, got {type(spec)}"
+            raise TypeError(msg)
+    if len(positions) > y_count:
+        msg = f"direction_cols length ({len(positions)}) cannot exceed number of y columns ({y_count})"
+        raise ValueError(msg)
+    return positions + [None] * (y_count - len(positions))
 
 
 def _resolve_plot_mode(mode: Literal["overlay", "individual"]) -> PlotMode:
-    """Convert user-facing mode flag into PlotMode enum."""
+    """Convert user-facing mode flag into PlotMode enum.
+
+    Raises:
+        PlotRequestError: ``reason="invalid_mode"`` for any value other than
+            ``"overlay"`` or ``"individual"`` (v1 silently fell back to individual).
+    """
+    validate_plot_request(mode=mode, no_individual=None)
     return PlotMode.OVERLAY if mode == "overlay" else PlotMode.INDIVIDUAL
 
 
@@ -182,7 +259,7 @@ def _build_plot_config(
         AxisConfig(
             label=x_label or normalized.derived_x_label,
             scale="log" if logx else "linear",
-            lim=normalize_axis_limits(xlim),
+            lim=validate_axis_limits(xlim, scale="log" if logx else "linear", axis="x"),
             grid=grid,
             invert=invert_x,
             tick_format=x_tick_format,
@@ -191,8 +268,11 @@ def _build_plot_config(
     builder.set_y_axis(
         AxisConfig(
             label=y_label or normalized.derived_y_label,
+            # A label derived from the first column is re-derived per figure by the
+            # planner (mixed units, individual figures); a passed y_label is kept as is.
+            label_origin="explicit" if y_label else "derived",
             scale="log" if logy else "linear",
-            lim=normalize_axis_limits(ylim),
+            lim=validate_axis_limits(ylim, scale="log" if logy else "linear", axis="y"),
             grid=grid,
             invert=invert_y,
             tick_format=y_tick_format,
@@ -228,12 +308,19 @@ def _save_render_results(
     main_image_dir_path: Path | None,
     html_output_dir_path: Path | None = None,
 ) -> None:
-    """Persist rendered results to disk."""
+    """Persist rendered results to disk (legacy routing, overlay results first).
+
+    Overlay images go to ``main_image_dir_path`` (else ``output_dir_path``), HTML to
+    ``html_output_dir_path`` (else ``output_dir_path``) and individual images to
+    ``output_dir_path``. Every destination is checked with the writer's
+    ``PathValidator`` before the first file is written, so a bad name never leaves a
+    partial set of files behind; directories may already have been created.
+    """
     if not collections.overlay and not collections.individual:
         return
 
-    writer = FileWriter()
     validator = PathValidator()
+    writer = FileWriter(validator)
     output_path = validator.ensure_directory(output_dir_path)
     html_output_path = (
         output_path
@@ -244,12 +331,15 @@ def _save_render_results(
     if main_image_dir_path is not None:
         main_image_path = validator.ensure_directory(main_image_dir_path)
 
-    for result in collections.overlay:
-        target_dir = output_path
-        if result.format.lower() == "html":
-            target_dir = html_output_path
-        elif main_image_path is not None:
-            target_dir = main_image_path
+    targets = [
+        (result, _overlay_target(result, output_path, main_image_path, html_output_path))
+        for result in collections.overlay
+    ]
+    targets.extend((result, output_path) for result in collections.individual)
+    for result, target_dir in targets:
+        validator.resolve_within(target_dir, result.filename)
+
+    for result, target_dir in targets:
         writer.save_figure(
             result.figure,
             target_dir,
@@ -257,13 +347,17 @@ def _save_render_results(
             result.format,
         )
 
-    for result in collections.individual:
-        writer.save_figure(
-            result.figure,
-            output_path,
-            result.filename,
-            result.format,
-        )
+
+def _overlay_target(
+    result: RenderResult,
+    output_path: Path,
+    main_image_path: Path | None,
+    html_output_path: Path,
+) -> Path:
+    """Directory of one overlay result: HTML -> html dir, image -> main image dir."""
+    if result.format.lower() == "html":
+        return html_output_path
+    return output_path if main_image_path is None else main_image_path
 
 
 def csv2graph(
@@ -271,7 +365,7 @@ def csv2graph(
     output_dir: str | Path | None = None,
     main_image_dir: str | Path | None = None,
     html_output_dir: str | Path | None = None,
-    csv_format: Literal["standard", "transpose", "noheader"] = "standard",
+    csv_format: str = "standard",
     logy: bool = False,
     logx: bool = False,
     html: bool = False,
@@ -311,10 +405,13 @@ def csv2graph(
         main_image_dir: Directory for combined plot outputs
                         (overrides output_dir for non-HTML overlay artifacts)
         html_output_dir: Directory for HTML outputs (default: CSV directory)
-        csv_format: CSV format type ("standard", "transpose", "noheader")
+        csv_format: Reader id: "standard", "transpose", "noheader", "meta_block",
+            "auto", or the id of a registered ``rdetoolkit.graph.readers`` entry point
         logy: Use log scale for y-axis
         logx: Use log scale for x-axis
-        html: Generate interactive HTML output with Plotly
+        html: Generate interactive HTML output with Plotly (needs the plotly
+            extra; a missing Plotly raises RendererUnavailableError, an
+            ImportError, before anything is drawn or written)
         mode: Plotting mode ("overlay" or "individual")
         x_col: X-axis column specification
         y_cols: Y-axis column(s) specification
@@ -356,11 +453,14 @@ def csv2graph(
         ...     grid=True,
         ... )
     """
-    from rdetoolkit.graph.parsers.parser_factory import ParserFactory
+    from rdetoolkit.graph.readers import read_table
 
     csv_path = Path(csv_path)
-    parser = ParserFactory.create(csv_format)
-    df = parser.parse(csv_path)
+    # The three legacy ids stay case-insensitive as with ParserFactory.create; any
+    # other id (or "auto") goes through the reader registry and its entry points.
+    legacy_id = csv_format.lower()
+    reader_id = legacy_id if legacy_id in ("standard", "transpose", "noheader") else csv_format
+    df = read_table(csv_path, reader=reader_id).frame
 
     if html_output_dir is not None and not isinstance(html_output_dir, (str, Path)):
         msg = "html_output_dir must be a str, Path, or None"
@@ -455,7 +555,9 @@ def plot_from_dataframe(
         html_output_dir: Directory for HTML artifacts (defaults to output_dir)
         logy: Use log scale for y-axis
         logx: Use log scale for x-axis
-        html: Generate interactive HTML output with Plotly
+        html: Generate interactive HTML output with Plotly (needs the plotly
+            extra; a missing Plotly raises RendererUnavailableError, an
+            ImportError, before anything is drawn or written)
         mode: Plotting mode ("overlay" or "individual")
         x_col: X-axis column specification
         y_cols: Y-axis column(s) specification
@@ -514,6 +616,10 @@ def plot_from_dataframe(
         msg = "html_output_dir must be a str, Path, or None"
         raise TypeError(msg)
 
+    # Reject the request before any column resolution or filesystem access so an
+    # invalid mode or a switch combination that yields no figure never writes anything.
+    validate_plot_request(mode=mode, no_individual=no_individual)
+
     output_dir_path = Path(output_dir)
     main_image_dir_path = Path(main_image_dir) if main_image_dir is not None else None
     html_output_dir_path = (
@@ -541,6 +647,9 @@ def plot_from_dataframe(
     )
     display_title, base_filename = determine_titles(title=title, name=name)
     formats = determine_formats(html=html, return_fig=return_fig)
+    if "html" in formats:
+        # Fail on a missing Plotly before any figure is drawn or any file is written.
+        builtin_html_renderer()
 
     config = _build_plot_config(
         plot_mode=plot_mode,
@@ -572,15 +681,58 @@ def plot_from_dataframe(
         main_image_dir_path=main_image_dir_path,
     )
 
-    collections = collect_render_results(df, config, plot_mode)
-
-    if return_fig:
-        return build_matplotlib_artifacts(collections)
-
-    _save_render_results(
-        collections,
-        output_dir_path,
-        main_image_dir_path,
-        html_output_dir_path,
-    )
+    # The legacy renderer applies the house style to rcParams; the scope keeps that
+    # change away from the caller, and figures are saved inside it so they look as before.
+    with style_scope():
+        collections = _collect_owned(df, config, plot_mode)
+        if return_fig:
+            return _hand_over(collections)
+        try:
+            _save_render_results(
+                collections,
+                output_dir_path,
+                main_image_dir_path,
+                html_output_dir_path,
+            )
+        finally:
+            # Save-only figures are owned by the facade: close them even when writing fails.
+            _close_figures(collections.all_results())
     return None
+
+
+def _collect_owned(df: pd.DataFrame, config: PlotConfig, plot_mode: PlotMode) -> RenderCollections:
+    """Render through the patchable module seam; close what a failed render already opened."""
+    before = set(plt.get_fignums())
+    try:
+        return collect_render_results(df, config, plot_mode)
+    except BaseException:
+        # Figures finished before the failure never reach the caller.
+        for number in sorted(set(plt.get_fignums()) - before):
+            plt.close(number)
+        raise
+
+
+def _hand_over(collections: RenderCollections) -> list[MatplotlibArtifact]:
+    """Detach every Matplotlib figure inside the style scope, then give them to the caller."""
+    results = collections.all_results()
+    try:
+        for figure in _matplotlib_figures(results):
+            detach_figure(figure)
+    except BaseException:
+        _close_figures(results)
+        raise
+    return build_matplotlib_artifacts(collections)
+
+
+def _matplotlib_figures(results: Sequence[RenderResult]) -> list[Figure]:
+    """Distinct Matplotlib figures of the results; foreign figures (Plotly, stubs) are skipped."""
+    figures: dict[int, Figure] = {}
+    for result in results:
+        if isinstance(result.figure, Figure):
+            figures.setdefault(id(result.figure), result.figure)
+    return list(figures.values())
+
+
+def _close_figures(results: Sequence[RenderResult]) -> None:
+    for figure in _matplotlib_figures(results):
+        plt.close(figure)

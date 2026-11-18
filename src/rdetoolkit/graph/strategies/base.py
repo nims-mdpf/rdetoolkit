@@ -1,8 +1,10 @@
 """Base protocol for plot strategies.
 
 This module defines the PlotStrategy protocol that all strategy classes implement.
-Strategy pattern allows different plot modes (combined, individual, dual_axis)
-to be implemented independently without affecting each other.
+Strategy pattern allows the supported plot modes (overlay and individual) to be
+implemented independently without affecting each other. Dual-axis plotting is not
+supported; ``DualAxisStrategy`` is an import-compatibility placeholder that always
+raises ``PlotRequestError`` (GE-12).
 """
 
 from __future__ import annotations
@@ -17,7 +19,7 @@ from rdetoolkit.graph.models import PlotConfig
 class PlotStrategy(Protocol):
     """Protocol for plot strategy classes.
 
-    All plot strategies (Combined, Individual, DualAxis) implement this protocol.
+    The plot strategies (Overlay, Individual) implement this protocol.
 
     Design pattern (from refactor_plan.md):
         - **Strategy layer**: Decides WHAT to render (workflow orchestration)
