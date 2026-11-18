@@ -13,8 +13,13 @@ a killed run leaves no stale lock; and the owner removes the file (and the
 then-empty directory) when it releases, so a finished run leaves nothing in the
 temporary directory either. Because a file can be removed between another
 run's ``open`` and its lock, an acquirer keeps a lock only on the file that is
-still at the path, and retries otherwise. When the directory cannot be used,
-only the process-wide layer applies.
+still at the path, and retries otherwise; when the retries run out, the root
+is refused rather than trusted. When the directory cannot be used, only the
+process-wide layer applies.
+
+A forked child inherits the parent's bookkeeping and lock descriptors but owns
+none of its roots, so the child starts with that state cleared, and releasing a
+lock object inherited across a fork leaves the parent's lock in place.
 """
 
 from __future__ import annotations
@@ -33,8 +38,28 @@ _RUN_ROOT_BUSY_CODE = 3008
 #: Opens retried while previous owners remove the file or directory under us.
 _ATTEMPTS = 8
 
-_HELD: set[str] = set()
+#: Roots owned by this process, with the descriptor of their lock file (if any).
+_HELD: dict[str, int | None] = {}
 _HELD_GUARD = threading.Lock()
+
+
+def _reset_after_fork() -> None:
+    """Drop the parent's ownership in a forked child.
+
+    Closing the inherited descriptors does not unlock the parent: an advisory
+    lock lasts until its last descriptor is closed or it is unlocked.
+    """
+    global _HELD_GUARD  # noqa: PLW0603 -- a held guard cannot be acquired in the child
+    _HELD_GUARD = threading.Lock()
+    for fd in _HELD.values():
+        if fd is not None:
+            with suppress(OSError):
+                os.close(fd)
+    _HELD.clear()
+
+
+if hasattr(os, "register_at_fork"):
+    os.register_at_fork(after_in_child=_reset_after_fork)
 
 
 def default_lock_dir() -> Path:
@@ -56,6 +81,7 @@ class DataRootLock:
         self._lock_dir = lock_dir if lock_dir is not None else default_lock_dir()
         self._fd: int | None = None
         self._held = False
+        self._owner_pid: int | None = None
 
     def acquire(self) -> bool:
         """Take the root if no other run owns it.
@@ -67,39 +93,51 @@ class DataRootLock:
         with _HELD_GUARD:
             if self._key in _HELD:
                 return False
-            _HELD.add(self._key)
-        owned, fd = self._lock_file()
+            _HELD[self._key] = None
+        try:
+            owned, fd = self._lock_file()
+        except BaseException:
+            self._forget()
+            raise
         if not owned:
             self._forget()
             return False
+        with _HELD_GUARD:
+            _HELD[self._key] = fd
         self._fd = fd
         self._held = True
+        self._owner_pid = os.getpid()
         return True
 
     def release(self) -> None:
         """Give the root up; releasing an unheld lock does nothing."""
         if not self._held:
             return
-        if self._fd is not None:
-            _release_file(self._fd, self._lock_path, self._lock_dir)
-            self._fd = None
+        fd, self._fd = self._fd, None
         self._held = False
+        if self._owner_pid != os.getpid():
+            # Inherited across a fork: the parent still owns the root, and the
+            # fork hook already closed this process's copy of the descriptor.
+            return
+        if fd is not None:
+            _release_file(fd, self._lock_path, self._lock_dir)
         self._forget()
 
     def _forget(self) -> None:
         with _HELD_GUARD:
-            _HELD.discard(self._key)
+            _HELD.pop(self._key, None)
 
     @property
     def _lock_path(self) -> Path:
-        return self._lock_dir / f"{hashlib.sha256(self._key.encode('utf-8')).hexdigest()[:32]}.lock"
+        return self._lock_dir / f"{hashlib.sha256(os.fsencode(self._key)).hexdigest()[:32]}.lock"
 
     def _lock_file(self) -> tuple[bool, int | None]:
         """Lock the file currently at the lock path.
 
         Returns:
-            ``(False, None)`` when another process owns it, ``(True, fd)`` when
-            this lock does, and ``(True, None)`` when no lock file can be used.
+            ``(False, None)`` when another process owns it or no current file
+            could be locked within the retries, ``(True, fd)`` when this lock
+            does, and ``(True, None)`` when no lock file can be used.
         """
         for _ in range(_ATTEMPTS):
             try:
@@ -109,15 +147,21 @@ class DataRootLock:
                 continue  # the previous owner removed the directory just now
             except OSError:
                 return True, None
-            if not _try_lock(fd):
-                os.close(fd)
-                return False, None
-            if _is_current(fd, self._lock_path):
-                return True, fd
-            # The previous owner removed this file after we opened it.
-            _unlock(fd)
+            try:
+                if not _try_lock(fd):
+                    os.close(fd)
+                    return False, None
+                if _is_current(fd, self._lock_path):
+                    return True, fd
+                # The previous owner removed this file after we opened it.
+                _unlock(fd)
+            except BaseException:
+                with suppress(OSError):
+                    os.close(fd)
+                raise
             os.close(fd)
-        return True, None
+        # Every attempt raced a removal: ownership needs a lock on the current file.
+        return False, None
 
 
 def run_root_busy_error(data_root: Path) -> RdeExecutionError:

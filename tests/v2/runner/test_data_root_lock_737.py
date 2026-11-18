@@ -27,11 +27,18 @@ BV table:
 | DataRootLock | release twice / release without acquire | no error | TC-737-LOCK-BV-002 |
 | DataRootLock | last owner releases | lock file and empty lock directory removed | TC-737-LOCK-BV-004 |
 | DataRootLock | lock file removed between open and lock | the stale file is not trusted; the fresh one is locked | TC-737-LOCK-BV-005 |
+| DataRootLock | every retry lands on a removed file | not acquired; nothing reserved | TC-737-LOCK-BV-006 |
+| DataRootLock | forked worker after the parent released | acquired in the worker | TC-737-LOCK-BV-007 |
+| DataRootLock | forked worker while the parent holds the root | not acquired; releasing the inherited copy leaves the parent's lock | TC-737-LOCK-BV-008 |
+| DataRootLock | POSIX root name that is not valid UTF-8 | acquired, released, acquired again | TC-737-LOCK-BV-009 |
+| DataRootLock | acquisition setup raises | the error propagates; the root is not left reserved | TC-737-LOCK-BV-010 |
 | Runner.run | two sequential runs on one root | both succeed | TC-737-LOCK-BV-003 |
 """
 
 from __future__ import annotations
 
+import multiprocessing
+import os
 import subprocess
 import sys
 import threading
@@ -338,6 +345,153 @@ def test_a_removed_lock_file_is_not_trusted__tc_737_lock_bv_005(tmp_path: Path, 
         assert holder.stdout.strip() == "busy"
     finally:
         lock.release()
+
+
+def test_exhausted_retries_refuse_the_root__tc_737_lock_bv_006(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """TC-737-LOCK-BV-006: no lock on the current file means no ownership, however often it was retried."""
+    # Given: an acquirer whose every lock lands on a file that is no longer at the path
+    from rdetoolkit.runner import root_lock  # noqa: PLC0415 -- the seam under test
+
+    root = tmp_path / "data"
+    root.mkdir()
+    monkeypatch.setattr(root_lock, "_is_current", lambda fd, path: False)
+    lock = DataRootLock(root, lock_dir=tmp_path / "locks")
+
+    # When / Then: it is refused, and the root is not left reserved in this process
+    assert lock.acquire() is False
+    monkeypatch.undo()
+    fresh = DataRootLock(root, lock_dir=tmp_path / "locks")
+    assert fresh.acquire() is True
+    fresh.release()
+
+
+def _fork_worker(root: str, locks: str, inherited: DataRootLock | None, start: Any, result: Any) -> None:
+    """Wait for the parent, optionally release the inherited copy, then try a fresh acquisition."""
+    start.wait(timeout=60)
+    if inherited is not None:
+        inherited.release()
+    lock = DataRootLock(Path(root), lock_dir=Path(locks))
+    owned = lock.acquire()
+    result.send(owned)
+    if owned:
+        lock.release()
+
+
+def _fork_context() -> Any:
+    if sys.platform == "win32" or "fork" not in multiprocessing.get_all_start_methods():
+        pytest.skip("fork is not available on this platform")
+    return multiprocessing.get_context("fork")
+
+
+def test_a_forked_worker_acquires_after_the_parent_released__tc_737_lock_bv_007(tmp_path: Path) -> None:
+    """TC-737-LOCK-BV-007: a worker forked while the parent held the root is not stuck on 3008."""
+    # Given: a worker forked while the parent owns the root
+    context = _fork_context()
+    root = tmp_path / "data"
+    root.mkdir()
+    locks = tmp_path / "locks"
+    lock = DataRootLock(root, lock_dir=locks)
+    assert lock.acquire()
+    start = context.Event()
+    receiver, sender = context.Pipe(duplex=False)
+    worker = context.Process(target=_fork_worker, args=(str(root), str(locks), None, start, sender))
+    worker.start()
+
+    # When: the parent releases, then the worker acquires
+    lock.release()
+    start.set()
+
+    # Then: the worker owns the root
+    try:
+        assert receiver.poll(60)
+        assert receiver.recv() is True
+    finally:
+        worker.join(60)
+    assert worker.exitcode == 0
+
+
+def test_a_forked_worker_cannot_take_or_free_the_parents_root__tc_737_lock_bv_008(tmp_path: Path) -> None:
+    """TC-737-LOCK-BV-008: the inherited copy of the parent's lock is not the worker's to release."""
+    # Given: a worker forked while the parent owns the root
+    context = _fork_context()
+    root = tmp_path / "data"
+    root.mkdir()
+    locks = tmp_path / "locks"
+    lock = DataRootLock(root, lock_dir=locks)
+    assert lock.acquire()
+    try:
+        start = context.Event()
+        receiver, sender = context.Pipe(duplex=False)
+        worker = context.Process(target=_fork_worker, args=(str(root), str(locks), lock, start, sender))
+        worker.start()
+
+        # When: the worker releases its inherited copy and then tries to acquire
+        start.set()
+        assert receiver.poll(60)
+        worker_owned = receiver.recv()
+        worker.join(60)
+
+        # Then: the worker was refused, and the parent still owns the root against other processes
+        assert worker_owned is False
+        assert worker.exitcode == 0
+        assert [path.suffix for path in locks.iterdir()] == [".lock"]
+        holder = subprocess.run(  # noqa: S603 -- fixed interpreter and script
+            [sys.executable, "-c", _HOLDER_SCRIPT, str(root), str(locks)],
+            input="",
+            capture_output=True,
+            text=True,
+            timeout=60,
+            check=True,
+        )
+        assert holder.stdout.strip() == "busy"
+    finally:
+        lock.release()
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="Windows file names are not byte strings")
+def test_a_non_utf8_root_name_is_lockable__tc_737_lock_bv_009(tmp_path: Path) -> None:
+    """TC-737-LOCK-BV-009: a valid POSIX name that is not UTF-8 is hashed by its file-system bytes."""
+    # Given: a data root whose name holds the byte 0xff
+    root = Path(os.fsdecode(os.fsencode(tmp_path) + b"/data-\xff"))
+    try:
+        root.mkdir()
+    except OSError:
+        pytest.skip("this file system rejects non-UTF-8 names")
+    lock = DataRootLock(root, lock_dir=tmp_path / "locks")
+
+    # When / Then: it is acquired, released and acquired again
+    assert lock.acquire() is True
+    lock.release()
+    again = DataRootLock(root, lock_dir=tmp_path / "locks")
+    assert again.acquire() is True
+    again.release()
+
+
+def test_a_failed_acquisition_does_not_leave_the_root_reserved__tc_737_lock_bv_010(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """TC-737-LOCK-BV-010: an error while locking the file rolls the in-process reservation back."""
+    # Given: an acquisition whose file locking raises
+    from rdetoolkit.runner import root_lock  # noqa: PLC0415 -- the seam under test
+
+    root = tmp_path / "data"
+    root.mkdir()
+
+    def broken(fd: int) -> bool:
+        msg = "boom"
+        raise RuntimeError(msg)
+
+    monkeypatch.setattr(root_lock, "_try_lock", broken)
+
+    # When: it raises
+    with pytest.raises(RuntimeError, match="boom"):
+        DataRootLock(root, lock_dir=tmp_path / "locks").acquire()
+
+    # Then: the root can be acquired once locking works again
+    monkeypatch.undo()
+    lock = DataRootLock(root, lock_dir=tmp_path / "locks")
+    assert lock.acquire() is True
+    lock.release()
 
 
 # ------------------------------------------------------------------ the Runner
