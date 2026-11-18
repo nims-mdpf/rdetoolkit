@@ -26,7 +26,7 @@ import pandas as pd
 from rdetoolkit.graph.config import DEFAULT_FIG_SIZE, DEFAULT_PLOT_PARAMS
 from rdetoolkit.graph.exceptions import GraphUserWarning, PlotRequestError
 from rdetoolkit.graph.naming import DEFAULT_BASE_STEM, GraphDiagnostic, reserve_stems, sanitize_stem, series_stem
-from rdetoolkit.graph.spec import AxisSpec, ColumnRef, GraphSpec, LegendSpec, Origin, SeriesSpec, StyleSpec
+from rdetoolkit.graph.spec import AxisSpec, ColumnRef, GraphSpec, LegendSpec, Origin, SeriesSpec, StyleSpec, direction_key
 from rdetoolkit.graph.textutils import parse_header
 from rdetoolkit.graph.units import group_units, normalize_unit
 from rdetoolkit.graph.validation import validate_axis_limits, validate_style
@@ -516,10 +516,10 @@ def _index_name(frame: pd.DataFrame) -> str:
 
 
 def _direction_or_none(value: Any) -> str | None:
-    """Normalize one direction cell: enum members by value, everything else by ``str``."""
+    """Normalize one direction cell with ``direction_key``; a missing cell is ``None``."""
     if not isinstance(value, Enum) and pd.isna(value):
         return None
-    return str(value.value) if isinstance(value, Enum) else str(value)
+    return direction_key(value)
 
 
 def _directions(frame: pd.DataFrame, direction_index: int | None, direction_filter: tuple[str, ...]) -> tuple[str, ...]:

@@ -30,15 +30,13 @@ from collections.abc import Callable, Iterator, Sequence
 from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass, field
-from enum import Enum
-from typing import Any
 
 import pandas as pd
 
 from rdetoolkit.graph.exceptions import GraphUserWarning, PlotRequestError
 from rdetoolkit.graph.models import AxisConfig, DirectionConfig, PlotConfig, PlotMode
 from rdetoolkit.graph.plan import UNIT_MISMATCH, FigurePlan, PlotPlan, build_plot_plan
-from rdetoolkit.graph.spec import AxisSpec, ColumnRef, GraphSpec, LegendSpec, Origin, SeriesSpec, StyleSpec
+from rdetoolkit.graph.spec import AxisSpec, ColumnRef, GraphSpec, LegendSpec, Origin, SeriesSpec, StyleSpec, direction_key
 from rdetoolkit.graph.textutils import parse_header, titleize
 
 __all__ = [
@@ -487,17 +485,12 @@ def _legend_spec(config: PlotConfig) -> LegendSpec:
     )
 
 
-def _direction_value(value: Any) -> str:
-    """Normalize a direction key the way the plan normalizes direction cells."""
-    return str(value.value) if isinstance(value, Enum) else str(value)
-
-
 def _direction_filter(direction: DirectionConfig) -> tuple[str, ...]:
     values: list[str] = []
     for value in direction.filters or []:
         if value is None:
             continue
-        normalized = _direction_value(value)
+        normalized = direction_key(value)
         if normalized not in values:
             values.append(normalized)
     return tuple(values)
@@ -507,7 +500,7 @@ def _direction_colors(direction: DirectionConfig) -> dict[str, str]:
     """Colours apply only when the caller opted in (``use_custom_colors``)."""
     if not getattr(direction, "use_custom_colors", False):
         return {}
-    return {_direction_value(key): color for key, color in direction.colors.items()}
+    return {direction_key(key): color for key, color in direction.colors.items()}
 
 
 def _base_name(config: PlotConfig) -> str:

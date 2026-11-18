@@ -15,6 +15,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
+from enum import Enum
 from numbers import Integral
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Final, Literal
@@ -65,6 +66,22 @@ def _check_column_ref(instance: object, field_name: str, name: str, *, optional:
         msg = f"{name} must be a column position (int) or label (str), got {value!r}"
         raise TypeError(msg)
     object.__setattr__(instance, field_name, int(value))
+
+
+def direction_key(value: Any) -> str:
+    """Normalize a direction value: an enum member by its value, anything else by ``str``.
+
+    One rule for data cells, ``direction_filter`` entries and ``direction_colors``
+    keys, so ``Direction.CHARGE`` (a ``str`` subclass whose ``str`` is
+    ``"Direction.CHARGE"``) matches a ``"Charge"`` cell.
+
+    Args:
+        value: A direction cell, filter entry or colour key.
+
+    Returns:
+        The normalized direction string.
+    """
+    return str(value.value) if isinstance(value, Enum) else str(value)
 
 
 def _freeze_mapping(instance: object, name: str, value: Mapping[Any, Any]) -> None:
@@ -277,8 +294,11 @@ class GraphSpec:
                 msg = f"GraphSpec.series entries must be SeriesSpec, got {type(entry).__name__}"
                 raise TypeError(msg)
         object.__setattr__(self, "series", series)
-        object.__setattr__(self, "direction_filter", tuple(str(value) for value in self.direction_filter))
+        object.__setattr__(self, "direction_filter", tuple(direction_key(value) for value in self.direction_filter))
         _freeze_mapping(self, "direction_colors", self.direction_colors)
+        object.__setattr__(
+            self, "direction_colors", MappingProxyType({direction_key(key): color for key, color in self.direction_colors.items()}),
+        )
 
 
 @dataclass(frozen=True, slots=True)

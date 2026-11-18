@@ -13,7 +13,9 @@ from __future__ import annotations
 
 import hashlib
 import math
+from collections.abc import Mapping
 from numbers import Real
+from types import MappingProxyType
 from typing import Any, Final
 
 import pandas as pd
@@ -121,7 +123,8 @@ class PlotlyRenderer:
             label_of=compat.legacy_plotly_label,
             axis_label_of=compat.legacy_plotly_axis_label,
         )
-        figure = self.render(plan, plan.figures[0], PlotData(frames=(df,)))
+        # v1 HTML never read the axis grid / tick-format settings: keep Plotly's defaults.
+        figure = self._draw(plan, plan.figures[0], PlotData(frames=(df,)), axis_style=False)
         compat.warn_mixed_overlay(plan)
         return figure
 
@@ -139,12 +142,16 @@ class PlotlyRenderer:
         Raises:
             RendererUnavailableError: An ``ImportError``, if Plotly is not installed.
         """
+        return self._draw(plan, figure, data, axis_style=True)
+
+    def _draw(self, plan: PlotPlan, figure: FigurePlan, data: PlotData, *, axis_style: bool) -> go.Figure:
+        """Draw a figure; ``axis_style`` applies each axis' grid and tick format (spec API)."""
         self._ensure_plotly_available()
         by_id = {entry.series_id: entry for entry in plan.series}
         series = [by_id[series_id] for series_id in figure.series_ids]
         traces = [trace for entry in series for trace in self._series_traces(plan, entry, data)]
         legend_item_count = self._count_legend_visible_traces(traces)
-        layout = self._build_layout(plan, figure, series, legend_item_count)
+        layout = self._build_layout(plan, figure, series, legend_item_count, axis_style=axis_style)
         fig = go.Figure(data=traces, layout=layout)
         self._apply_legend_annotation(fig, plan.legend.info)
         return fig
@@ -196,14 +203,16 @@ class PlotlyRenderer:
         figure: FigurePlan,
         series: list[SeriesPlan],
         legend_item_count: int,
+        *,
+        axis_style: bool,
     ) -> Any:
         # v1 falls back to the raw header of the first series when there is no title.
         title = figure.title if figure.title else series[0].y_name
         showlegend, legend_layout = self._resolve_legend_layout(plan.legend, legend_item_count)
         layout_kwargs: dict[str, Any] = {
             "title": title,
-            "xaxis": self._build_axis_layout(plan.x_axis, figure.x_label or "X"),
-            "yaxis": self._build_axis_layout(plan.y_axis, figure.y_label or "Y"),
+            "xaxis": self._build_axis_layout(plan.x_axis, figure.x_label or "X", axis_style=axis_style),
+            "yaxis": self._build_axis_layout(plan.y_axis, figure.y_label or "Y", axis_style=axis_style),
             "showlegend": showlegend,
             "updatemenus": self._build_update_menus(plan),
         }
@@ -256,7 +265,7 @@ class PlotlyRenderer:
         # resolved == "outside_right"
         return True, {"x": 1.02, "xanchor": "left", "y": 1.0, "yanchor": "top"}
 
-    def _build_axis_layout(self, axis: AxisSpec, label: str) -> dict[str, Any]:
+    def _build_axis_layout(self, axis: AxisSpec, label: str, *, axis_style: bool) -> dict[str, Any]:
         axis_layout: dict[str, Any] = {
             "title": label,
             "type": axis.scale,
@@ -267,6 +276,8 @@ class PlotlyRenderer:
                 "exponentformat": "power",
                 "showexponent": "all",
             })
+        if axis_style:
+            axis_layout.update(_plotly_axis_style(axis))
         axis_layout.update(_plotly_extent(axis))
         return axis_layout
 
@@ -340,6 +351,25 @@ class PlotlyRenderer:
             bordercolor="rgba(0,0,0,0.2)",
             borderwidth=1,
         )
+
+
+# Plotly ``exponentformat`` per ``AxisSpec.tick_format``; "auto" keeps Plotly's default.
+_PLOTLY_EXPONENT_FORMATS: Final[Mapping[str, str]] = MappingProxyType({"plain": "none", "sci": "power", "eng": "SI"})
+
+
+def _plotly_axis_style(axis: AxisSpec) -> dict[str, Any]:
+    """The grid and tick-format keys of an axis, as the Matplotlib renderer applies them.
+
+    Grid lines follow ``axis.grid`` per axis. The tick format applies to linear axes
+    only: a log axis keeps its power-of-ten ticks, as in Matplotlib.
+    """
+    style: dict[str, Any] = {"showgrid": axis.grid}
+    exponent_format = _PLOTLY_EXPONENT_FORMATS.get(axis.tick_format)
+    if axis.scale != "log" and exponent_format is not None:
+        style["exponentformat"] = exponent_format
+        if axis.tick_format == "sci":
+            style["showexponent"] = "all"
+    return style
 
 
 def _plotly_extent(axis: AxisSpec) -> dict[str, Any]:

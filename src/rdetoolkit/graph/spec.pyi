@@ -10,6 +10,8 @@ AxisLimits = tuple[float | None, float | None]
 Origin = Literal["explicit", "default", "derived"]
 INVALID_SPEC: Final[str]
 
+def direction_key(value: Any) -> str: ...
+
 @dataclass(frozen=True, slots=True)
 class SeriesSpec:
     y: ColumnRef

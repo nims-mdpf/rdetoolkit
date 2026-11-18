@@ -41,16 +41,22 @@ def _check_destination(directory: Path, filename: str) -> None:
 
     The containment rule is the legacy ``PathValidator``'s (path components, not a
     string prefix), so the spec API and the legacy facade accept the same names.
-    The directory itself need not exist yet.
+    The directory need not exist yet, but its nearest existing ancestor must be a
+    directory, and the destination must not be an existing directory: both would
+    otherwise fail only while writing, after earlier artifacts were written.
     """
     resolved = directory.resolve()
-    if resolved.exists() and not resolved.is_dir():
-        msg = f"Output path is not a directory: {resolved}"
+    existing = next(path for path in (resolved, *resolved.parents) if path.exists())
+    if not existing.is_dir():
+        msg = f"Output path is not a directory: {existing}"
         raise OutputPathError(msg)
     try:
-        PathValidator().resolve_within(resolved, filename)
+        target = PathValidator().resolve_within(resolved, filename)
     except ValueError as exc:
         raise OutputPathError(str(exc)) from None
+    if target.is_dir():
+        msg = f"Artifact destination is an existing directory: {target}"
+        raise OutputPathError(msg)
 
 
 @runtime_checkable
