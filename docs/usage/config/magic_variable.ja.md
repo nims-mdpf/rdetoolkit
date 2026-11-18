@@ -1,6 +1,6 @@
 # Magic Variable機能とは
 
-`run(flow=...)` には [v2 の厳密な補間仕様](magic_variable_v2.en.md) が適用されます。
+`run(flow=...)` には [v2 の厳密な補間仕様](magic_variable_v2.ja.md) が適用されます。
 以下の boolean 設定と空値の省略規則は、従来の callback API の仕様です。
 
 ## 目的

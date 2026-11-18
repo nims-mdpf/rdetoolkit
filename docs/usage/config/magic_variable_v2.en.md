@@ -150,11 +150,49 @@ reports that per-tile sources are deferred. It does not execute the flow to
 manufacture metadata. Runner validation itself writes its normal logs/reports;
 use the pure preview API when filesystem immutability is required.
 
-Complete SmartTable row/schema preview and row/column diagnostics remain
-dependent on [#734](https://github.com/nims-mdpf/rdetoolkit/issues/734).
-The pure preview is groundwork for
-[#727](https://github.com/nims-mdpf/rdetoolkit/issues/727); that integration and
-the [#704 epic](https://github.com/nims-mdpf/rdetoolkit/issues/704) remain open.
+### Deferred sources
+
+`preview_invoice` accepts `deferred_scopes`, a set of expression scopes
+(`invoice`, `invoice-original`, `invoice-current`, `metadata`, `filename`)
+whose source is not available yet. A token in a deferred scope produces a
+`deferred` diagnostic (reason `deferred_source`, no error code) and its source
+is never read. A field containing a deferred token skips the output checks,
+because its final value is unknown, and schema validation is skipped while any
+diagnostic is deferred. An unknown scope name raises `ValueError`.
+`resolve_invoice` never defers.
+
+```pycon
+>>> from rdetoolkit.domain.magic import ResolutionContext, preview_invoice
+>>> context = ResolutionContext.from_sources(
+...     original_invoice={},
+...     current_invoice={"basic": {"dataName": "${metadata:constant:thickness}"}},
+... )
+>>> preview_invoice(context, deferred_scopes=frozenset({"metadata"})).diagnostics[0].status
+'deferred'
+
+```
+
+### `rdetoolkit run --explain`
+
+The `magic_preview` section of the explain output applies the same preview to
+every planned tile, using the pre-flow snapshot: `invoice/invoice.json`, the
+tile's input file names, and no metadata. It never writes files, imports user
+code, or emits source values.
+
+It checks template syntax, source resolution (including `filename` uniqueness),
+value normalization, and output limits (`dataName` validity and length).
+Status values are `previewed`, `disabled` (policy off), `no_templates`, and
+`not_applicable` (RDEFormat has no magic stage). Each tile is `previewed`,
+`skipped` (precompleted or omitted by mode), or `deferred` (its invoice is built
+from a table row at run time). Metadata expressions are always `deferred`
+because the flow produces `metadata.json`.
+
+It does **not** check the invoice schema, the `InvoiceValidator` standard and
+application checks, or anything the flow or preparation step changes. These
+are listed under `not_checked` in the output. A fully resolved preview therefore
+does not guarantee successful registration. Passing `schema=` to
+`preview_invoice` adds a pure schema check only. Final validation remains the
+responsibility of `InvoiceValidator`.
 
 `RuleBasedReplacer` is a separate compatibility API for dotted assignments.
 An explicit `mapping_rules`, including `{}`, replaces stored rules. Successful
