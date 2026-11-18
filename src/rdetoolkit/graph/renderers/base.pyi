@@ -25,6 +25,7 @@ class RendererCapabilities:
     install_hint: str = ""
     applies_rc_params: bool = False
     def supports(self, fmt: str, kind: str) -> bool: ...
+    def __post_init__(self) -> None: ...
 
 @runtime_checkable
 class GraphRenderer(Protocol):

@@ -23,6 +23,7 @@ class Artifact:
     replaced_existing: bool = False
     diagnostics: tuple[GraphDiagnostic, ...] = ()
     def manifest_entry(self) -> dict[str, Any]: ...
+    def __post_init__(self) -> None: ...
 
 @dataclass(frozen=True, slots=True)
 class GraphResult:
