@@ -963,3 +963,13 @@ WARNING_CATALOG[1102] = WarningDef(
     name="InterpolationDiagnostic",
     message_template="Interpolation stage diagnostic: {reason}",
 )
+
+
+ERROR_CATALOG[3008] = ErrorDef(
+    name="RunRootBusy",
+    message_template="The run was refused before writing anything: {reason}.",
+    remediation=(
+        "Wait for the other run on this data root to finish, or give each concurrent run "
+        "its own data root. Nothing of the refused run was written."
+    ),
+)

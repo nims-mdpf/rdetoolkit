@@ -59,6 +59,7 @@ from rdetoolkit.domain.mode_selection import normalize_mode_name
 from rdetoolkit.runner.mode_resolver import ModeDecision, ModeKind, resolve_mode_decision
 from rdetoolkit.runner.paths import resolve_data_root, resolve_tile_paths
 from rdetoolkit.runner.planner import RunPlanner, TilePlan, reject_empty_input
+from rdetoolkit.runner.root_lock import DataRootLock, run_root_busy_error
 from rdetoolkit.types import RdeConfig
 
 
@@ -199,30 +200,24 @@ class Runner:
         Returns:
             Run report produced by ``iterate`` and finalized by this Runner.
         """
-        run_request = (
-            request
-            if isinstance(request, RunRequest)
-            else build_run_request(
-                flow=request,
-                custom_dataset_function=None,
-                config=overrides or None,
-                root=self.root,
-            )
-        )
-        if isinstance(request, RunRequest) and overrides:
-            msg = "Config overrides must be carried by RunRequest.config_source"
-            raise TypeError(msg)
+        run_request = _normalized_request(request, overrides, root=self.root)
         target = run_request.target
         self._begin_run_state(validate_only=run_request.validate_only)
         self._apply_request_root(run_request.root)
         # Resolved before any directory is created, so the alias-flat answer
         # cannot change once tile 0 exists (ruling #1).
         self._data_root = resolve_data_root(self.root)
-        self._invoice_service.begin_run()
+        # Owned before the first write, released after the report is persisted:
+        # two runs on one root interleave their tile invoice writes (#737).
+        root_lock = DataRootLock(self._data_root)
+        if not root_lock.acquire():
+            return self._busy_root_report(target)
 
         previous_sigterm: Any = None
         sigterm_installed = False
         try:
+            # Inside the block that releases the root, so a failure here cannot leak it.
+            self._invoice_service.begin_run()
             started = time.time()
             self.run_id = self._run_id_factory()
             config: RdeConfig | None = None
@@ -284,6 +279,23 @@ class Runner:
             # as well as at begin_run: a long-lived host process never
             # accumulates the material of the runs it already finished.
             self._invoice_service.end_run()
+            root_lock.release()
+
+    def _busy_root_report(self, target: ExecutionTarget) -> RunReport:
+        """Refuse a run whose data root another run owns, writing nothing (3008).
+
+        The report is returned, not finalized: ``job.failed``, the event log and
+        the report file all live in the root the other run owns.
+        """
+        self.run_id = self._run_id_factory()
+        return _failed_report(
+            run_id=self.run_id,
+            flow_id=_target_flow_id(target),
+            mode=None,
+            started=time.time(),
+            config=RdeConfig(),
+            exc=run_root_busy_error(self.data_root),
+        )
 
     def _begin_run_state(self, *, validate_only: bool) -> None:
         """Reset the per-run state a previous run on this Runner left behind.
@@ -954,6 +966,20 @@ def _clear_iterations_dir(iterations_dir: Path) -> None:
     """Remove a previous run's per-tile files; the aggregator recreates the directory."""
     if iterations_dir.is_dir() and not iterations_dir.is_symlink():
         shutil.rmtree(iterations_dir)
+
+
+def _normalized_request(request: RunRequest | Callable[..., Any], overrides: Mapping[str, Any], *, root: Path) -> RunRequest:
+    """Return ``request`` as a ``RunRequest``; a direct flow callable carries ``overrides``.
+
+    Raises:
+        TypeError: If overrides accompany a ``RunRequest``, which carries its own config.
+    """
+    if isinstance(request, RunRequest):
+        if overrides:
+            msg = "Config overrides must be carried by RunRequest.config_source"
+            raise TypeError(msg)
+        return request
+    return build_run_request(flow=request, custom_dataset_function=None, config=dict(overrides) or None, root=root)
 
 
 def _flow_id(flow_fn: Callable[..., Any]) -> str:
