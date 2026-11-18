@@ -161,6 +161,10 @@ system:
   extended_mode: "MultiDataTile" # マルチデータタイルモード
 ```
 
+`null` とキーの省略は「未指定」を表し、値は既定の `"invoice"` になります。
+未指定と `"invoice"` の明示指定は区別され、`config_digest` も異なります。
+Python から型付きで設定する場合は `None` を渡さず、引数を省略してください。
+
 ### 処理モード
 
 ワークフローに応じて `extended_mode` を選択してください。各モードの前提条件や振る舞いは[データ登録モード](../mode/mode.ja.md)で詳しく解説しています。

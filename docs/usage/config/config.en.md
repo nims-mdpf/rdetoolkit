@@ -182,6 +182,11 @@ system:
   extended_mode: "MultiDataTile"    # Multi-data-tile mode
 ```
 
+`null` and an omitted key both mean "not set", and the value becomes the
+default `"invoice"`. An unset mode and an explicit `"invoice"` stay distinct
+and produce different `config_digest` values. In typed Python code, omit the
+argument instead of passing `None`.
+
 ### Processing Modes
 
 Choose the `extended_mode` value that matches your workflow. The **[Data Registration Modes](../mode/mode.en.md)** documentation describes prerequisites, inputs, and expected outputs for every mode.
