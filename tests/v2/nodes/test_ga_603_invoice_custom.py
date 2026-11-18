@@ -31,6 +31,7 @@ resolve_custom_key         unknown label               StructuredError code 4012
 resolve_custom_key         label on two keys           StructuredError 4013, both keys     GA603-EP-017
 resolve_custom_key         lang restriction            other language not matched          GA603-EP-018
 @flow(error_code=7)        4011 / 4012 / 4013 raised   catalog code + remediation kept     GA603-EP-025
+except StructuredError     4011 / 4012 / 4013 in flow  caught, run succeeds, no job.failed GA603-EP-026
 =========================  ==========================  ==================================  ================
 
 BV table
@@ -484,6 +485,37 @@ class TestCatalogCodesInRun:
         assert f"ErrorCode={code}" in job_failed
         assert f"Remediation: {ERROR_CATALOG[code].remediation}" in job_failed
         assert "generic failure" not in job_failed
+
+    @pytest.mark.parametrize(
+        ("call", "code"),
+        [
+            (lambda: set_custom_fields(_invoice({}), {"unknown_key": "1"}), 4011),
+            (lambda: resolve_custom_key(SCHEMA, "Unknown"), 4012),
+            (lambda: resolve_custom_key(SCHEMA, "備考"), 4013),
+        ],
+        ids=["undefined-key", "unknown-label", "ambiguous-label"],
+    )
+    def test_except_structured_error_still_catches__ga603_ep_026(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, call: Any, code: int) -> None:
+        """GA603-EP-026: a template's ``except StructuredError`` still catches the catalogued errors in a run."""
+        # Given: a flow that handles schema mismatches with the pre-#621 except clause
+        _build_tree(tmp_path / "data")
+        monkeypatch.chdir(tmp_path)
+        caught: list[int] = []
+
+        @flow(error_code=7, error_message="generic failure")
+        def pipeline() -> None:
+            try:
+                call()
+            except StructuredError as error:
+                caught.append(error.ecode)
+
+        # When: running it through the Runner
+        report = workflows.run(flow=pipeline, config={"system": {"save_thumbnail_image": False}})
+        # Then: the handler saw the catalog code and the run succeeded without job.failed
+        assert caught == [code]
+        assert report.status == "success"
+        assert report.error is None
+        assert not (tmp_path / "data" / "job.failed").exists()
 
 
 class TestEmptyStrings:
