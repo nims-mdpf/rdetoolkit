@@ -126,6 +126,8 @@ def _build_multidatatile_root(tmp_path: Path, file_count: int, *, with_invoice: 
             encoding="utf-8",
         )
     (root / "tasksupport").mkdir()
+    # The Runner's pre_validate guarantees this file; the injected invoice carries it (#620).
+    (root / "tasksupport" / "invoice.schema.json").write_text(json.dumps({"properties": {}}), encoding="utf-8")
     return root
 
 
@@ -155,6 +157,8 @@ def _build_rdeformat_root(tmp_path: Path, groups: dict[str, list[str]]) -> Path:
         encoding="utf-8",
     )
     (root / "tasksupport").mkdir()
+    # The Runner's pre_validate guarantees this file; the injected invoice carries it (#620).
+    (root / "tasksupport" / "invoice.schema.json").write_text(json.dumps({"properties": {}}), encoding="utf-8")
     return root
 
 

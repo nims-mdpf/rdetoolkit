@@ -152,17 +152,20 @@ class InvoiceService:
             data_root: The run's single resolved data root.
 
         Returns:
-            Loaded invoice or None for per-tile invoice modes.
+            Loaded invoice, carrying ``tasksupport/invoice.schema.json`` as
+            every per-tile invoice does (#620), or None for per-tile invoice
+            modes.
         """
         invoice_path = data_root / "invoice" / "invoice.json"
+        schema_path = data_root / "tasksupport" / "invoice.schema.json"
         mode_value = _mode_value(mode)
         if mode_value == "invoice":
             inputdata = data_root / "inputdata"
             if not invoice_path.exists() and inputdata.exists() and not tuple(sorted(inputdata.iterdir())):
                 return None
-            return load_invoice(invoice_path)
+            return load_invoice(invoice_path, schema_path=schema_path)
         if mode_value in {"multidatatile", "rdeformat"} and invoice_path.exists():
-            return load_invoice(invoice_path)
+            return load_invoice(invoice_path, schema_path=schema_path)
         return None
 
     def apply_step(
