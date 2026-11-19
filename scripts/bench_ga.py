@@ -19,7 +19,7 @@ Cases (``full`` profile; ``quick`` runs the same cases at tiny sizes):
 Release gate. ``--baseline FILE`` compares the run with a committed baseline
 and exits 1 when a metric breaks its threshold:
 
-* exact metrics (image and tile counts, statuses, the artifact manifest digest,
+* exact metrics (image and tile counts, statuses, parsed rows and columns, the artifact manifest digest,
   figures left open or alive after a collection) must equal the baseline;
 * time is compared as ``normalized_seconds`` (seconds divided by a fixed CPU
   calibration workload measured in the same run), so a slower runner does not
@@ -29,7 +29,11 @@ and exits 1 when a metric breaks its threshold:
   ``max_ratio`` x baseline plus ``slack``.
 
 Independently of any baseline, every rendering case must leave no figure open
-in pyplot and none alive after a collection; a violation always exits 1.
+in pyplot and none alive after a collection, and every timed repetition must
+do the whole job (a run succeeds over every tile, a plan finds every tile, a
+parse returns every row and column, a render writes every image with the same
+manifest); a violation always exits 1, so a failed or truncated repetition
+cannot pass as a fast one.
 
 Accepting a regression is an explicit review step: rerun with
 ``--write-baseline scripts/bench_ga_baseline.json`` and commit the changed
@@ -69,6 +73,7 @@ DEPENDENCIES = (
 )
 EXACT_METRICS = (
     "images", "figures_open", "live_figures_after_collect", "tiles", "status", "manifest_sha256", "iterations",
+    "parsed_rows", "parsed_columns",
 )
 DEFAULT_THRESHOLDS: dict[str, dict[str, float]] = {
     "normalized_seconds": {"max_ratio": 2.0},
@@ -95,7 +100,7 @@ def _profile_cases(profile: str) -> list[Case]:
     full = profile == "full"
     overlay = (1, 10, 100, 1000) if full else (1, 10)
     both = (1, 10, 100) if full else (1, 3)
-    tiles = {"smarttable": (100, 1000), "multidatatile": (100, 1000), "excelinvoice": (100, 300)}
+    tiles: dict[str, tuple[int, ...]] = {"smarttable": (100, 1000), "multidatatile": (100, 1000), "excelinvoice": (100, 300)}
     if not full:
         tiles = dict.fromkeys(tiles, (5,))
     cases = [Case(f"render_overlay_{n}", "render", {"series": n, "layout": "overlay"}) for n in overlay]
@@ -172,13 +177,30 @@ def _figure_state(synthetic: Any) -> dict[str, int]:
     return {"figures_open": len(plt.get_fignums()), "live_figures_after_collect": synthetic.live_figures()}
 
 
-def _timed(repeat: int, action: Callable[[int], Any]) -> tuple[list[float], Any]:
-    samples, last = [], None
+Check = Callable[[int, Any], list[str]]
+
+
+def _timed(repeat: int, action: Callable[[int], Any], check: Check) -> tuple[list[float], Any, list[str]]:
+    """Time ``action`` ``repeat`` times and check the work of every repetition.
+
+    A sample only counts when its repetition did the whole job: a failed,
+    partial or truncated repetition would otherwise look fast. ``check``
+    returns the problems of one repetition; they are reported per repetition
+    as ``work_violations`` and always fail the gate.
+    """
+    samples: list[float] = []
+    problems: list[str] = []
+    last = None
     for index in range(repeat):
         started = time.perf_counter()
         last = action(index)
         samples.append(time.perf_counter() - started)
-    return samples, last
+        problems += [f"repetition {index}: {problem}" for problem in check(index, last)]
+    return samples, last, problems
+
+
+def _expect(name: str, actual: Any, expected: Any) -> list[str]:
+    return [] if actual == expected else [f"{name} = {actual!r}, expected {expected!r}"]
 
 
 def _render_case(params: Mapping[str, Any], repeat: int, work: Path) -> dict[str, Any]:
@@ -190,6 +212,8 @@ def _render_case(params: Mapping[str, Any], repeat: int, work: Path) -> dict[str
     frame = synthetic.wide_frame(params["series"], 200)
     spec = GraphSpec(layout=params["layout"], unit_policy="allow")
     live_max = [0]
+    expected_images = 1 if params["layout"] == "overlay" else params["series"] + 1
+    digests: list[str] = []
 
     def render(index: int) -> Any:
         target = work / f"r{index}"
@@ -197,15 +221,23 @@ def _render_case(params: Mapping[str, Any], repeat: int, work: Path) -> dict[str
         live_max[0] = max(live_max[0], synthetic.live_figures())
         return result
 
+    def check(index: int, result: Any) -> list[str]:
+        digests.append(hashlib.sha256(result.manifest_json().encode()).hexdigest())
+        return [
+            *_expect("images", len(synthetic.file_manifest(work / f"r{index}")), expected_images),
+            *_expect("manifest_sha256", digests[-1], digests[0]),
+        ]
+
     rss_before = _current_rss_mib()
-    samples, result = _timed(repeat, render)
+    samples, result, problems = _timed(repeat, render, check)
     files = synthetic.file_manifest(work / f"r{repeat - 1}")
     return {
         "samples": samples,
+        "work_violations": problems,
         "rss_before_mib": rss_before,
         "images": len(files),
         "artifacts": len(result.artifacts),
-        "manifest_sha256": hashlib.sha256(result.manifest_json().encode()).hexdigest(),
+        "manifest_sha256": digests[-1],
         "live_figures_max": live_max[0],
         "data": {"series": params["series"], "rows": 200, "layout": params["layout"], "dpi": _RENDER_DPI},
         **_figure_state(synthetic),
@@ -223,19 +255,31 @@ def _render_repeat_case(params: Mapping[str, Any], repeat: int, work: Path) -> d
     times = params["times"]
     rss: list[float | None] = []
     live: list[int] = []
+    digests: list[str] = []
 
-    def sequence(index: int) -> None:
+    def sequence(index: int) -> list[str]:
+        problems = []
         for step in range(times):
             target = work / f"s{index}_{step}"
-            render_graph(frame, spec, output=OutputSpec(DirectorySink(target / "other", main_image_dir=target / "main"), dpi=_RENDER_DPI))
+            result = render_graph(frame, spec, output=OutputSpec(DirectorySink(target / "other", main_image_dir=target / "main"), dpi=_RENDER_DPI))
             live.append(synthetic.live_figures())
             rss.append(_current_rss_mib())
+            digests.append(hashlib.sha256(result.manifest_json().encode()).hexdigest())
+            problems += [
+                f"render {step}: {problem}"
+                for problem in (
+                    *_expect("images", len(synthetic.file_manifest(target)), params["series"] + 1),
+                    *_expect("manifest_sha256", digests[-1], digests[0]),
+                )
+            ]
+        return problems
 
     rss_before = _current_rss_mib()
-    samples, _ = _timed(repeat, sequence)
+    samples, _, problems = _timed(repeat, sequence, lambda _index, step_problems: step_problems)
     settled = [value for value in rss[len(rss) // 3 :] if value is not None]
     return {
         "samples": samples,
+        "work_violations": problems,
         "rss_before_mib": rss_before,
         "renders": times * repeat,
         "live_figures_max": max(live),
@@ -254,17 +298,25 @@ def _csv_parse_case(params: Mapping[str, Any], repeat: int, work: Path) -> dict[
     path = synthetic.write_csv(work / "table.csv", params["series"], params["rows"])
     rss_before = _current_rss_mib()
 
-    def parse(_index: int) -> tuple[str | None, int]:
-        decision = detect_table_format(path)
-        table = StandardReader().read(path)
-        return decision.selected, table.frame.shape[0]
+    # The x column plus one column per series.
+    expected_shape = (params["rows"], params["series"] + 1)
 
-    samples, (selected, rows) = _timed(repeat, parse)
+    def parse(_index: int) -> tuple[str | None, tuple[int, int]]:
+        decision = detect_table_format(path)
+        rows, columns = StandardReader().read(path).frame.shape
+        return decision.selected, (rows, columns)
+
+    def check(_index: int, parsed: tuple[str | None, tuple[int, int]]) -> list[str]:
+        return [*_expect("status", parsed[0], "standard"), *_expect("shape", parsed[1], expected_shape)]
+
+    samples, (selected, shape), problems = _timed(repeat, parse, check)
     return {
         "samples": samples,
+        "work_violations": problems,
         "rss_before_mib": rss_before,
         "status": selected,
-        "parsed_rows": rows,
+        "parsed_rows": shape[0],
+        "parsed_columns": shape[1],
         "data": {"series": params["series"], "rows": params["rows"], "bytes": path.stat().st_size},
     }
 
@@ -278,9 +330,16 @@ def _plan_case(params: Mapping[str, Any], repeat: int, work: Path) -> dict[str, 
     synthetic = _synthetic()
     root = getattr(synthetic, _BUILDERS[params["mode"]])(work / "project", params["tiles"])
     rss_before = _current_rss_mib()
-    samples, preview = _timed(repeat, lambda _index: preview_registration(root))
+    def check(_index: int, preview: Any) -> list[str]:
+        return [
+            *_expect("tiles", len(preview.tiles), params["tiles"]),
+            *_expect("status", preview.decision.chosen_mode.value, params["mode"]),
+        ]
+
+    samples, preview, problems = _timed(repeat, lambda _index: preview_registration(root), check)
     return {
         "samples": samples,
+        "work_violations": problems,
         "rss_before_mib": rss_before,
         "tiles": len(preview.tiles),
         "status": preview.decision.chosen_mode.value,
@@ -302,9 +361,13 @@ def _run_case(params: Mapping[str, Any], repeat: int, work: Path) -> dict[str, A
     builder = getattr(synthetic, _BUILDERS[params["mode"]])
     roots = [builder(work / f"project{index}", params["tiles"]) for index in range(repeat)]
     rss_before = _current_rss_mib()
-    samples, report = _timed(repeat, lambda index: Runner(root=roots[index]).run(noop))
+    def check(_index: int, report: Any) -> list[str]:
+        return [*_expect("status", report.status, "success"), *_expect("iterations", len(report.iterations), params["tiles"])]
+
+    samples, report, problems = _timed(repeat, lambda index: Runner(root=roots[index]).run(noop), check)
     return {
         "samples": samples,
+        "work_violations": problems,
         "rss_before_mib": rss_before,
         "status": report.status,
         "iterations": len(report.iterations),
@@ -447,6 +510,18 @@ def figure_violations(cases: Mapping[str, Mapping[str, Any]]) -> list[str]:
             if metrics.get(key, 0) != 0:
                 problems.append(f"{name}: {key} = {metrics[key]} (must be 0)")
     return problems
+
+
+def work_violations(cases: Mapping[str, Mapping[str, Any]]) -> list[str]:
+    """Return the repetitions that did not do the whole job, across all cases.
+
+    Args:
+        cases: The per-case metrics of a result.
+
+    Returns:
+        One message per failed, partial or truncated repetition.
+    """
+    return [f"{name}: {problem}" for name, metrics in cases.items() for problem in metrics.get("work_violations", [])]
 
 
 def compare(result: Mapping[str, Any], baseline: Mapping[str, Any]) -> list[dict[str, Any]]:
@@ -604,6 +679,11 @@ def _apply_gate(result: dict[str, Any], baseline: Path | None) -> int:
     result["figure_violations"] = violations
     for problem in violations:
         print(f"[bench_ga] FIGURE VIOLATION {problem}", file=sys.stderr)
+        exit_code = 1
+    incomplete = work_violations(result["cases"])
+    result["work_violations"] = incomplete
+    for problem in incomplete:
+        print(f"[bench_ga] WORK VIOLATION {problem}", file=sys.stderr)
         exit_code = 1
     if baseline is not None:
         rows = compare(result, json.loads(baseline.read_text(encoding="utf-8")))

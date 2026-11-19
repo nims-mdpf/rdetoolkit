@@ -121,12 +121,16 @@
     "csv_parse_rows": {
       "status": "standard",
       "normalized_seconds": 1.94910557626207,
-      "peak_rss_delta_mib": 31.05859375
+      "peak_rss_delta_mib": 31.05859375,
+      "parsed_rows": 100000,
+      "parsed_columns": 11
     },
     "csv_parse_columns": {
       "status": "standard",
       "normalized_seconds": 1.4253587969397405,
-      "peak_rss_delta_mib": 9.67578125
+      "peak_rss_delta_mib": 9.67578125,
+      "parsed_rows": 200,
+      "parsed_columns": 1001
     },
     "plan_smarttable_100": {
       "tiles": 100,
