@@ -131,7 +131,10 @@ flow の補間が有効な場合、最初の invoice 検証では、対象とな
   サムネイルと `structured/invoice.json` の出力が含まれます。この出力は補間より前に
   行われるため、展開後の値ではなくテンプレート文字列を含みます。ExcelInvoice と
   MultiDataTile は最初に補間するため、失敗したタイルでは後続のステージは実行されません。
-- 1 行目にカタログのコード(例: `ErrorCode=4007`)を持つ `job.failed`。
+- 1 行目にカタログのコード(例: `ErrorCode=4007`)を持つ `job.failed`。これは実行全体の
+  status が `failed` の場合にだけ書き込まれます。`execution.on_iteration_error: continue`
+  などで失敗したタイルと完了したタイルが混在する実行は status が `partial` となり、
+  `job.failed` を書き込みません。失敗したタイルはレポートと診断にだけ現れます。
 - `logs/` 配下の、その実行の `run_report_<run_id>.json`、`events_<run_id>.jsonl`、
   `diagnostics_<run_id>.json`、`iterations/iteration_<index>.json`。
 

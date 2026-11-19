@@ -138,8 +138,11 @@ fails, for example with 4007, the tile fails and these artifacts remain:
   so it contains the template text, not the expanded value. ExcelInvoice and
   MultiDataTile interpolate first, so their later stages do not run for the
   failed tile.
-- `job.failed`, with the catalogued code on its first line, such as
-  `ErrorCode=4007`.
+- `job.failed`, only when the run as a whole has status `failed`, with the
+  catalogued code on its first line, such as `ErrorCode=4007`. A run that has
+  both failed and completed tiles, for example with
+  `execution.on_iteration_error: continue`, has status `partial` and writes no
+  `job.failed`. Its failed tiles appear only in the report and diagnostics.
 - The run's `run_report_<run_id>.json`, `events_<run_id>.jsonl`,
   `diagnostics_<run_id>.json`, and `iterations/iteration_<index>.json` under
   `logs/`.
