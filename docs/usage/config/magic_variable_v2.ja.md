@@ -119,6 +119,40 @@ flow の補間が有効な場合、最初の invoice 検証では、対象とな
 元のテーブルを含む SmartTable の任意のタイルは、完了済みとして扱われ、flow と補間
 ステージを行いません。従来の成果物の順序は維持されます。
 
+## 書き込み失敗と再実行
+
+アトミックな置き換えで保護されるのは `invoice.json` だけです。flow や先行する成果物
+ステージがトランザクションになるわけではありません。補間の最終検証が 4007 などで失敗
+すると、そのタイルは失敗となり、次の成果物が残ります。
+
+- flow が書き込んだすべてのファイル。たとえば `meta/metadata.json` や `structured/`
+  配下のファイルです。
+- モードの順序(上の表)で補間より前にあるステージの成果物。Invoice と SmartTable では、
+  サムネイルと `structured/invoice.json` の出力が含まれます。この出力は補間より前に
+  行われるため、展開後の値ではなくテンプレート文字列を含みます。ExcelInvoice と
+  MultiDataTile は最初に補間するため、失敗したタイルでは後続のステージは実行されません。
+- 1 行目にカタログのコード(例: `ErrorCode=4007`)を持つ `job.failed`。
+- `logs/` 配下の、その実行の `run_report_<run_id>.json`、`events_<run_id>.jsonl`、
+  `diagnostics_<run_id>.json`、`iterations/iteration_<index>.json`。
+
+失敗の特定には実行レポートを読みます。失敗したタイルは status が `failed` で、コードを
+含む `error` を持ちます。診断のエントリは phase が `artifact_publish` で、そのタイルの
+`iteration_index` を持ちます。`rdetoolkit report explain logs/run_report_<run_id>.json`
+は同じ情報を対処方法とともに表示します。
+
+Runner は残った成果物を削除しません。flow が生成するメタデータ、テンプレート、または
+`invoice.schema.json` を修正したら、何も削除せずに同じデータルートで再実行してください。
+再実行には新しい run ID が付きます。再実行は、実行したタイルの invoice、ステージの成果物、
+`iterations/iteration_<index>.json` を書き直します。そのレポートと `report explain` は
+その実行だけを記述し、成功した再実行は診断ファイルを書きません。以前の実行のログは run ID
+で引き続き参照できます。v1 と同様に、後続の実行が成功しても `job.failed` は削除されません。
+結果は `job.failed` の有無ではなく、最新の実行レポートで確認してください。
+
+再実行時の flow 自身の出力は、flow の作成者が管理します。各出力は固定のパスに上書きで
+書き込み、追記や実行ごとの新しい名前での作成は避けてください。修正後の実行が出力しなく
+なったファイルは削除してください。Runner は、flow の副作用、外部システムへの書き込み、
+ユーザーのファイルをロールバックや後片付けせず、任意の flow を冪等にすることもしません。
+
 ## 純粋なプレビュー
 
 `rdetoolkit.domain.magic` は `ResolutionContext`、`MagicOptions`、`resolve_invoice`、

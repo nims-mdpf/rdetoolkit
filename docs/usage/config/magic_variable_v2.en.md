@@ -124,6 +124,48 @@ is retained. Cleanup is best effort and can leave an unremoved temporary file.
 The optional SmartTable tile containing the original table is precompleted and
 omits the flow and interpolation stage. Legacy artifact order is preserved.
 
+## Publication failure and reruns
+
+Atomic replacement protects `invoice.json` only. It does not make the flow or
+earlier artifact stages transactional. When final interpolation validation
+fails, for example with 4007, the tile fails and these artifacts remain:
+
+- Every file the flow wrote, such as `meta/metadata.json` and its files under
+  `structured/`.
+- Artifacts of the stages that precede interpolation in the mode's order (see
+  the table above). In Invoice and SmartTable this includes the thumbnail and
+  the `structured/invoice.json` export. That export runs before interpolation,
+  so it contains the template text, not the expanded value. ExcelInvoice and
+  MultiDataTile interpolate first, so their later stages do not run for the
+  failed tile.
+- `job.failed`, with the catalogued code on its first line, such as
+  `ErrorCode=4007`.
+- The run's `run_report_<run_id>.json`, `events_<run_id>.jsonl`,
+  `diagnostics_<run_id>.json`, and `iterations/iteration_<index>.json` under
+  `logs/`.
+
+To identify the failure, read the run report: the failed tile has status
+`failed` and an `error` with the code. Its diagnostics entry has phase
+`artifact_publish` and the tile's `iteration_index`.
+`rdetoolkit report explain logs/run_report_<run_id>.json` prints the same
+information with its remedy.
+
+The Runner does not remove retained artifacts. After you correct the metadata
+the flow generates, the template, or `invoice.schema.json`, rerun on the same
+data root without removing anything. The rerun has a new run ID. It rewrites
+the invoice, the stage artifacts, and `iterations/iteration_<index>.json` for
+the tiles it runs. Its report and `report explain` describe that run only, and
+a successful rerun writes no diagnostics file. The earlier run's logs remain
+addressable by their run ID. As in v1, a later successful run does not remove
+`job.failed`, so check the latest run report for the outcome instead of
+checking whether `job.failed` exists.
+
+The flow author is responsible for the flow's own outputs on rerun. Write each
+output to a fixed path and overwrite it, rather than appending or creating a
+new name per run. Remove outputs a corrected run no longer produces. The Runner
+does not roll back or clean up flow side effects, writes to external systems,
+or user files, and it does not make arbitrary flows idempotent.
+
 ## Pure preview
 
 `rdetoolkit.domain.magic` provides `ResolutionContext`, `MagicOptions`,
