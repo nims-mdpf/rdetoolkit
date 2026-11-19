@@ -16,6 +16,7 @@ groups, and the sorted groups are paired with workbook rows by position.
 | XM-P7 | sibling folders, unique, reversed | b, a | b-row1, a-row2 |
 | XM-B1 | sibling folders, unmatched row first | missing, a | a-row1, b-row2 (positional) |
 | XM-B2 | identifier names a directory outside the archive | extraction dir, b | v2 ignores it: b-row1, a-row2 |
+| XM-B3 | distinct identifiers, ancestor on the first row | parent, b, a | all tie on row 1: root-row1, a-row2, b-row3 |
 """
 
 from pathlib import Path
@@ -31,16 +32,19 @@ from tests.v2.contract.fixtures import _generate
 
 _NESTED = {"parent/zz.txt": b"parent", "parent/child/aa.txt": b"child"}
 _SIBLINGS = {"a/a.txt": b"a", "b/b.txt": b"b"}
+_PARENT_WITH_TWO_CHILDREN = {"parent/root.txt": b"parent", "parent/a/a.txt": b"a", "parent/b/b.txt": b"b"}
 
 
-def _project(root: Path, identifiers: tuple[str, str], members: dict[str, bytes]) -> Path:
+def _project(root: Path, identifiers: tuple[str, ...], members: dict[str, bytes]) -> Path:
     _generate.materialize_case(_generate.oracle_case("v1/excelinvoice/ok"), root)
     inputdata = root / "data/inputdata"
     workbook_path = next(inputdata.glob("*.xlsx"))
     workbook = load_workbook(workbook_path)
     sheet = workbook["invoice_form"]
-    sheet["A5"], sheet["A6"] = identifiers
-    sheet["B5"], sheet["B6"] = "row1", "row2"
+    owner = sheet["C5"].value
+    for offset, identifier in enumerate(identifiers):
+        row = 5 + offset
+        sheet[f"A{row}"], sheet[f"B{row}"], sheet[f"C{row}"] = identifier, f"row{offset + 1}", owner
     workbook.save(workbook_path)
     workbook.close()
     _generate.rewrite_excelinvoice_archive(root, members)
@@ -79,13 +83,24 @@ def _legacy(root: Path, inputdata: Path) -> list[str]:
         (("missing", "parent"), _NESTED, ["zz.txt", "aa.txt"]),
         (("b", "a"), _SIBLINGS, ["b.txt", "a.txt"]),
         (("missing", "a"), _SIBLINGS, ["a.txt", "b.txt"]),
+        (("parent", "b", "a"), _PARENT_WITH_TWO_CHILDREN, ["root.txt", "a.txt", "b.txt"]),
     ],
-    ids=["xm_p1_unique", "xm_p2_reversed", "xm_p3_no_match", "xm_p4_duplicate_ancestor", "xm_p5_duplicate_descendant", "xm_p6_unmatched_then_ancestor", "xm_p7_siblings_reversed", "xm_b1_positional_fallback"],
+    ids=[
+        "xm_p1_unique",
+        "xm_p2_reversed",
+        "xm_p3_no_match",
+        "xm_p4_duplicate_ancestor",
+        "xm_p5_duplicate_descendant",
+        "xm_p6_unmatched_then_ancestor",
+        "xm_p7_siblings_reversed",
+        "xm_b1_positional_fallback",
+        "xm_b3_distinct_but_ancestor_first",
+    ],
 )
-def test_row_identifier_association_matches_legacy__xm(tmp_path: Path, identifiers: tuple[str, str], members: dict[str, bytes], expected: list[str]) -> None:
-    # Given: two workbook rows whose identifiers exercise one matching partition.
+def test_row_identifier_association_matches_legacy__xm(tmp_path: Path, identifiers: tuple[str, ...], members: dict[str, bytes], expected: list[str]) -> None:
+    # Given: workbook rows whose identifiers exercise one matching partition.
     inputdata = _project(tmp_path, identifiers, members)
-    pairs = list(zip(expected, ["row1", "row2"], strict=True))
+    pairs = [(name, f"row{row}") for row, name in enumerate(expected, start=1)]
     # When: the legacy checker, the read-only preview, and the Runner each group the archive.
     legacy = _legacy(tmp_path, inputdata)
     preview = _preview(tmp_path)

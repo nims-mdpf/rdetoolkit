@@ -1008,7 +1008,8 @@ identifier matches a folder is not guaranteed to receive that folder.
 
 | Identifier case | Result |
 | --- | --- |
-| Every row matches a different folder | Each row receives its matching folder, also when the workbook rows are reversed |
+| Each group's path contains exactly one identifier, and no two groups share it | Each row receives its matching folder, also when the workbook rows are reversed |
+| Identifiers are distinct, but one also appears in another group's path (an ancestor folder or a file name) | That group takes the highest row among the identifiers in its path. For `parent/root.txt`, `parent/a/a.txt`, `parent/b/b.txt` with rows `parent`, `b`, `a`, all three groups take row 1 and keep folder order, so row 2 (`b`) receives `a/a.txt` and row 3 (`a`) receives `b/b.txt` |
 | No row matches | Rows receive folders in folder order |
 | The same identifier appears on several rows | Groups matching it share one number and are assigned in folder order |
 | A parent folder name is the identifier | A child's path also contains the parent name, so parent and child share a number. If a row naming the child is higher in the workbook, the child takes that row's number instead |
@@ -1022,8 +1023,14 @@ extraction path, so an identifier equal to an extraction directory name such
 as `data` or `temp` matched every group. v2 matches archive-relative paths
 only, and such an identifier counts as unmatched.
 
-To associate rows and folders reliably, put one distinct folder name in the
-first column of each row. Check the association before running with the
+Distinct identifiers alone do not guarantee the intended association. Each
+row receives its matching folder only when the first file of every group has
+exactly one workbook identifier among its path components, and no two groups
+share that identifier. To associate rows and folders reliably, place one
+folder per row directly under the archive root without nesting, and write
+that folder name in the row's first column. Keep the folder names different
+from every other folder and file name in the archive. Check the association
+before running with the
 `input_names` and `source_row` of each tile in
 `rdetoolkit run ... --validate-only --explain`. The preview and the run build
 the same association from the same input snapshot.
