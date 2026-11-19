@@ -137,6 +137,13 @@ system:
     iterations = 100
     ```
 
+!!! note "`custom:` の外にあるテンプレート設定"
+    `tasksupport/rdeconfig.yaml` では、rdetoolkit が定義していないトップレベルの
+    セクション(例: `system:` と並ぶ `sem:`)を警告なしで `config.custom["sem"]` として
+    読みます。プロジェクト直下の `rdeconfig.yaml` と `[tool.rdetoolkit]` はこのような
+    セクションをエラーにするため、そこでは `custom:` の下に書いてください。
+    詳しくは[テンプレート固有の設定](../migration_v1_to_v2.md#template-settings)を参照してください。
+
 ### 5. 構造化処理内で設定を参照する
 
 作成した設定値を構造化処理関数内で使用する方法：

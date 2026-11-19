@@ -31,6 +31,7 @@ BV / negative table:
 from __future__ import annotations
 
 import textwrap
+import warnings
 from pathlib import Path
 
 import pytest
@@ -212,8 +213,10 @@ def test_unknown_v1_keys_are_preserved__tc_ira_4_ev_066(tmp_path: Path) -> None:
     )
 
     # When: the Runner loads its configuration
-    with pytest.warns(UserWarning, match="vendor_extension"):
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
         config = load_config(tmp_path, data_root=tmp_path / "data")
 
-    # Then: the unknown section survives under custom, as origin="v1" defines
+    # Then: the unknown section survives under custom, as origin="v1" defines,
+    # without a warning -- a mapping section is template settings (#624)
     assert config.custom["vendor_extension"] == {"answer": 42}

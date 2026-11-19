@@ -64,3 +64,81 @@ def test_invalid_custom_rejected__ga566_neg_1(tmp_path: Path, custom: Any) -> No
     with pytest.raises(RdeConfigError) as raised:
         ConfigNormalizer().normalize({"custom": custom}, root=tmp_path, origin="v1")
     assert raised.value.code == 1002
+
+
+_TEMPLATE_SECTION_YAML = (
+    "system:\n  extended_mode: null\n  save_raw: true\n"
+    "sem:\n  magnification_key: Mag\n  thumbnail: true\n"
+)
+
+
+def test_tasksupport_template_section_is_custom_without_warning__i624_ep_1(tmp_path: Path) -> None:
+    """I624-EP-1: a v1 template section reaches config.custom silently."""
+    # Given: an unchanged v1 template keeping its settings next to ``system:``
+    data_root = tmp_path / "data"
+    (data_root / "tasksupport").mkdir(parents=True)
+    (data_root / "tasksupport/rdeconfig.yaml").write_text(_TEMPLATE_SECTION_YAML, encoding="utf-8")
+    # When: the Runner discovers the tasksupport file through the v1 loader
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        result = ConfigNormalizer().normalize(None, root=tmp_path, origin="v2", data_root=data_root)
+    # Then: the section is template settings under custom, and no warning fires
+    assert result.custom == {"sem": {"magnification_key": "Mag", "thumbnail": True}}
+
+
+def test_explicit_custom_wins_over_template_section__i624_bv_1(tmp_path: Path) -> None:
+    """I624-BV-1: an explicit custom entry of the same name wins, silently."""
+    # Given: a template section and an explicit custom entry with the same name
+    source = {"sem": {"thumbnail": True}, "custom": {"sem": {"thumbnail": False}}}
+    # When: converting at the legacy model boundary
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        result = ConfigNormalizer().normalize(source, root=tmp_path, origin="v1")
+    # Then: explicit custom keeps priority
+    assert result.custom == {"sem": {"thumbnail": False}}
+
+
+def test_non_mapping_legacy_key_warns_with_remediation__i624_neg_1(tmp_path: Path) -> None:
+    """I624-NEG-1: a top-level scalar is not a template section; the warning says what to do."""
+    # Given / When: a v1 top-level scalar outside every known section
+    with pytest.warns(UserWarning, match=r"'vendor'.*move it under `custom:`"):
+        result = ConfigNormalizer().normalize({"vendor": "legacy"}, root=tmp_path, origin="v1")
+    # Then: the value is still preserved
+    assert result.custom == {"vendor": "legacy"}
+
+
+@pytest.mark.parametrize(
+    ("key", "section"),
+    [("sytem", "system"), ("System", "system"), ("smartable", "smarttable"), ("multidata_tiles", "multidata_tile"), ("custm", "custom")],
+)
+def test_misspelled_v1_section_still_warns__i624_neg_3(tmp_path: Path, key: str, section: str) -> None:
+    """I624-NEG-3: a mapping named like a v1 section is a likely typo and keeps warning."""
+    # Given: a typo of a v1 section whose settings would otherwise fall back to defaults
+    source = {key: {"extended_mode": "MultiDataTile"}}
+    # When / Then: the warning names the intended section
+    with pytest.warns(UserWarning, match=rf"{key!r} looks like the v1 section {section!r}"):
+        result = ConfigNormalizer().normalize(source, root=tmp_path, origin="v1")
+    # Then: the value is still preserved, not applied
+    assert result.custom == {key: {"extended_mode": "MultiDataTile"}}
+    assert result.system.extended_mode == "invoice"
+
+
+@pytest.mark.parametrize("key", ["sem", "xps", "eis", "vsm", "analysis", "instrument"])
+def test_template_section_names_do_not_warn__i624_bv_2(tmp_path: Path, key: str) -> None:
+    """I624-BV-2: real template section names are not mistaken for v1 typos."""
+    # Given / When: a template section with a name unlike every v1 section
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        result = ConfigNormalizer().normalize({key: {"enabled": True}}, root=tmp_path, origin="v1")
+    # Then: it is template settings, silently
+    assert result.custom == {key: {"enabled": True}}
+
+
+def test_v2_form_rejects_template_section__i624_neg_2(tmp_path: Path) -> None:
+    """I624-NEG-2: the v2 form keeps rejecting unknown sections so typos fail."""
+    # Given: the same section in a project-root v2 rdeconfig.yaml
+    (tmp_path / "rdeconfig.yaml").write_text(_TEMPLATE_SECTION_YAML, encoding="utf-8")
+    # When / Then: discovery of the v2 form raises the configuration error
+    with pytest.raises(RdeConfigError) as raised:
+        ConfigNormalizer().normalize(None, root=tmp_path, origin="v2", data_root=tmp_path / "data")
+    assert raised.value.code == 1002

@@ -137,6 +137,13 @@ Define custom configuration values that can be referenced within structured proc
     iterations = 100
     ```
 
+!!! note "Template settings outside `custom:`"
+    In `tasksupport/rdeconfig.yaml`, a top-level section that rdetoolkit does
+    not define (for example `sem:` next to `system:`) is read as
+    `config.custom["sem"]` without a warning. A project-root `rdeconfig.yaml`
+    or `[tool.rdetoolkit]` rejects such a section, so write it under `custom:`
+    there. See [Template settings](../migration_v1_to_v2.en.md#template-settings).
+
 ### 5. Reference Settings in Structuring Processing
 
 How to use created configuration values within structured processing functions:
