@@ -29,6 +29,7 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 if str(REPOSITORY_ROOT) not in sys.path:
     sys.path.insert(0, str(REPOSITORY_ROOT))
 
+from tests.v2.contract import deviations  # noqa: E402
 from tests.v2.contract.fixtures import _generate  # noqa: E402
 from tests.v2.contract.observe import LOGS_PREFIX  # noqa: E402
 
@@ -105,7 +106,8 @@ def execute_entry_observation(case_id: str, root: Path, *, callback: str | None 
         )
         raise RuntimeError(message)
     observation = json.loads(observation_path.read_text(encoding="utf-8"))
-    return dict(_generate.normalize_snapshot(observation, roots=(root,)))
+    normalized = _generate.normalize_snapshot(observation, roots=(root,))
+    return deviations.to_v1_view(normalized, root if root.name == "data" else root / "data")
 
 
 def observe_public_entry(case_id: str, root: Path, *, callback: str | None = None) -> dict[str, Any]:

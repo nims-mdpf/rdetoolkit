@@ -8,7 +8,7 @@ Equivalence partitions (EP):
 | ``Runner.iterate`` | rdeformat | missing v2 delegation | temp backup exists | TC-G0-BACKUP-002 |
 | ``Runner.iterate`` | multidatatile | missing v2 delegation | temp backup exists | TC-G0-BACKUP-003 |
 | ``Runner.iterate`` | invoice | excluded mode | temp backup absent | TC-G0-BACKUP-004 |
-| ``Runner.iterate`` | smarttable | excluded mode | temp backup absent | TC-G0-BACKUP-005 |
+| ``Runner.iterate`` | smarttable | v2 addition (#525): tile 0 overwrites the source | temp backup exists | TC-G0-BACKUP-005 |
 | ``Runner.iterate`` | nested layout | legacy data-root layout | backup content equals source | TC-GR-BACKUP-006 |
 | ``Runner.iterate`` | flat layout | public flat-root layout | backup content equals source | TC-GR-BACKUP-006 |
 | ``Runner.iterate`` | cwd equals root | legacy caller placement | backup content equals source | TC-GR-BACKUP-006 |
@@ -49,7 +49,7 @@ _CASES = [
     pytest.param(ModeKind.rdeformat, True, id="rdeformat"),
     pytest.param(ModeKind.multidatatile, True, id="multidatatile"),
     pytest.param(ModeKind.invoice, False, id="invoice"),
-    pytest.param(ModeKind.smarttable, False, id="smarttable"),
+    pytest.param(ModeKind.smarttable, True, id="smarttable"),
 ]
 
 _LAYOUT_CWD_MODE_CASES = [
