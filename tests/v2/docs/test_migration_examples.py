@@ -14,6 +14,7 @@ default_value.csv     defaults + measured     measured wins in build_meta    629
 ProcessingError       missing input file      3007 with cause and guidance   634-DOC
 artifact logger       shared logger in flow   file holds the block lines     GA631-DOC
 template settings     v1 section vs v2 custom same custom, no warning        624-DOC
+raw copy edit         zip and meta inputs     members stored, meta removed   GA623-DOC
 ====================  ======================  =============================  ====================
 
 BV table
@@ -173,6 +174,17 @@ def test_artifact_logger_example_executes__ga631_doc(doc: Path) -> None:
 
 
 @DOCS
+def test_raw_copy_example_executes__ga623_doc(doc: Path) -> None:
+    """GA623-DOC: the documented raw-copy example replaces and removes the Runner's copies."""
+    # Given: the documented remove_raw_copy / replace_raw_copy example
+    namespace: dict[str, object] = {}
+    # When: executing it as ordinary Python
+    exec(_examples(doc)["ga623-raw-copy"][1], namespace)  # noqa: S102
+    # Then: its own assertion ran on the stored raw files
+    assert namespace["stored"] == ["image.tif"]
+
+
+@DOCS
 def test_every_migration_fence_is_executed__tc_doc_mig_bv_001(doc: Path) -> None:
     """TC-DOC-MIG-BV-001: no unmarked migration-guide code fence can bypass execution."""
     # Given: all fenced examples in the migration guide
@@ -180,7 +192,7 @@ def test_every_migration_fence_is_executed__tc_doc_mig_bv_001(doc: Path) -> None
     # When: comparing their stable marker names with this module's executed set
     # GA572's production entry is executed for all outcomes and both languages
     # in test_ga_572_process_exit.test_migration_main_example_executes__ga572_doc.
-    executed = {"legacy-source", "migration-commands", "as-node-bridge", "ga572-main", "load-run-config", "ga603-custom-fields", "ga630-run-program", "read-key-values", "processing-error", "ga631-artifact-logger", "template-settings-v1", "template-settings-v2"}
+    executed = {"legacy-source", "migration-commands", "as-node-bridge", "ga572-main", "load-run-config", "ga603-custom-fields", "ga630-run-program", "read-key-values", "processing-error", "ga631-artifact-logger", "ga623-raw-copy", "template-settings-v1", "template-settings-v2"}
     # Then: every example is explicitly owned by an execution test
     assert set(examples) == executed
 
