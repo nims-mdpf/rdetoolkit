@@ -381,8 +381,9 @@ the extracted files, not the ZIP, are the raw data. Both nodes act on the
 enabled kinds only (a disabled kind is not touched), and the call is recorded
 in the call log. `replace_raw_copy` copies the members by name (archive
 subdirectories are not kept) and then removes the original copy. A missing
-copy, two members with the same name, or a member that would overwrite
-another input's copy raises an exception and changes nothing. Replace code
+copy, two members with the same name, a member that would overwrite
+another input's copy, or a member that is the copy being replaced or lies
+inside it raises an exception and changes nothing. Replace code
 that deleted a copy directly, such as
 `out.path_for("nonshared_raw", name).unlink()`, with these nodes.
 

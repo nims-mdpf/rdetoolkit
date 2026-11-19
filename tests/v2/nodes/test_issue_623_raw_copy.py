@@ -23,12 +23,14 @@ BV / negative table
 ================  ====================================  =====================================  =============
 API               Boundary                              Expected                               Test ID
 ================  ====================================  =====================================  =============
-both              both kinds disabled                   no-op, empty list                      I623-BV-001
+both              both kinds disabled                   no-op, members not validated           I623-BV-001
 both              nested / traversal filename           ValueError, nothing changed            I623-NEG-001
 both              enabled kind has no copy              FileNotFoundError, nothing changed     I623-NEG-002
 replace_raw_copy  member missing                        FileNotFoundError, nothing changed     I623-NEG-003
 replace_raw_copy  two members share a name              ValueError, nothing changed            I623-NEG-004
 replace_raw_copy  member collides with another input    FileExistsError, nothing changed       I623-NEG-005
+replace_raw_copy  member is the copy being replaced     ValueError, nothing changed            I623-NEG-006
+replace_raw_copy  member inside a directory copy        ValueError, both kinds unchanged       I623-NEG-007
 ================  ====================================  =====================================  =============
 """
 
@@ -170,11 +172,17 @@ class TestReplaceRawCopy:
 class TestBoundariesAndErrors:
     def test_both_disabled_is_noop__i623_bv_001(self, output_context: OutputContext, tmp_path: Path) -> None:
         """I623-BV-001: with both kinds disabled nothing is checked or changed."""
-        # Given: no raw copies at all
+        # Given: no raw copies at all, and members that would fail validation
         (member,) = _members(tmp_path, "a.txt")
-        # When / Then: both nodes return an empty list
+        first, second = tmp_path / "x" / "dup.txt", tmp_path / "y" / "dup.txt"
+        for path in (first, second):
+            path.parent.mkdir()
+            path.write_text(str(path), encoding="utf-8")
+        # When / Then: both nodes return an empty list without validating members
         assert remove_raw_copy(output_context, NEITHER, "absent.zip") == []
         assert replace_raw_copy(output_context, NEITHER, "absent.zip", [member]) == []
+        assert replace_raw_copy(output_context, NEITHER, "absent.zip", [tmp_path / "missing.txt"]) == []
+        assert replace_raw_copy(output_context, NEITHER, "absent.zip", [first, second]) == []
         assert _tree(output_context) == {"raw": [], "nonshared_raw": []}
 
     @pytest.mark.parametrize("filename", ["../a.zip", "sub/a.zip", "..", ""])
@@ -237,6 +245,28 @@ class TestBoundariesAndErrors:
             replace_raw_copy(output_context, BOTH, "a.zip", [member])
         assert (output_context.raw / "m.txt").read_bytes() == b"other input"
         assert _tree(output_context) == {"raw": ["a.zip", "m.txt"], "nonshared_raw": ["a.zip", "m.txt"]}
+
+
+    def test_member_is_the_copy__i623_neg_006(self, output_context: OutputContext) -> None:
+        """I623-NEG-006: the copy being replaced cannot be its own member."""
+        # Given: both copies of data.csv
+        _seed(output_context, "data.csv", b"copy")
+        # When / Then: passing the raw copy itself is rejected before any change
+        with pytest.raises(ValueError, match="raw copy being replaced"):
+            replace_raw_copy(output_context, BOTH, "data.csv", [output_context.raw / "data.csv"])
+        assert (output_context.raw / "data.csv").read_bytes() == b"copy"
+        assert (output_context.nonshared_raw / "data.csv").read_bytes() == b"copy"
+
+    def test_member_inside_directory_copy__i623_neg_007(self, output_context: OutputContext) -> None:
+        """I623-NEG-007: a member inside a directory copy is rejected; both kinds stay consistent."""
+        # Given: a directory copy in both kinds
+        for directory in (output_context.raw, output_context.nonshared_raw):
+            (directory / "scan").mkdir(parents=True)
+            (directory / "scan" / "data.csv").write_text("d", encoding="utf-8")
+        # When / Then: a member taken from inside the raw directory copy is rejected
+        with pytest.raises(ValueError, match="raw copy being replaced"):
+            replace_raw_copy(output_context, BOTH, "scan", [output_context.raw / "scan" / "data.csv"])
+        assert _tree(output_context) == {"raw": ["scan", "scan/data.csv"], "nonshared_raw": ["scan", "scan/data.csv"]}
 
 
 _INVOICE = {

@@ -60,6 +60,17 @@ def _unique_members(members: Sequence[Path]) -> list[Path]:
     return unique
 
 
+def _reject_sources_inside_copies(sources: list[Path], copies: list[Path]) -> None:
+    """Reject members that the replacement itself would delete before reading them."""
+    resolved_copies = [copy.resolve() for copy in copies]
+    for source in sources:
+        resolved = source.resolve()
+        for copy in resolved_copies:
+            if resolved == copy or resolved.is_relative_to(copy):
+                msg = f"Member {source} is the raw copy being replaced or inside it; extract or copy it elsewhere first"
+                raise ValueError(msg)
+
+
 @node(tags=["builtin", "raw"], version="2.0.0")
 def remove_raw_copy(out: OutputContext, config: RdeConfig, filename: str) -> list[Path]:
     """Remove the Runner's copy of an input from the enabled raw directories.
@@ -124,17 +135,23 @@ def replace_raw_copy(
         ``nonshared_raw``. Empty when both kinds are disabled.
 
     Raises:
-        ValueError: If ``filename`` is not a simple filename, or two
-            different members have the same name.
+        ValueError: If ``filename`` is not a simple filename, two
+            different members have the same name, or a member is one of the
+            copies being replaced or lies inside one.
         FileNotFoundError: If an enabled kind has no copy named ``filename``
             or a member does not exist.
         FileExistsError: If a member would overwrite another file in a raw
             directory.
 
-        No file is copied or removed when one of these is raised.
+        No file is copied or removed when one of these is raised. With
+        both kinds disabled nothing is checked, ``members`` included, and
+        ``[]`` is returned.
     """
     copies = _existing_copies(out, config, filename)
+    if not copies:
+        return []
     sources = _unique_members(members)
+    _reject_sources_inside_copies(sources, copies)
     for copy in copies:
         for source in sources:
             target = copy.parent / source.name
