@@ -118,6 +118,9 @@ that its order is not reproducible; name ordering remains deterministic.
 ExcelInvoice folder grouping retains the legacy parent-before-child traversal
 before applying workbook order. When a parent and its nested folder both have
 files, each keeps the invoice from its corresponding workbook row.
+Workbook identifiers only sort folder groups. The sorted groups are then
+assigned to rows by position, so unmatched and duplicate identifiers fall back
+to folder order. The migration guide gives the full rule (#760).
 
 RDEFormat report `datatile_id` and `target` keep their first-input derivation.
 V2 now takes that first input from archive order, so their values can differ
