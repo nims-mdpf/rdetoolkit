@@ -35,7 +35,7 @@ EP table:
 | ARG-STALE-{MODE} | old report after the rerun | still the old run's failure; overwritten iteration details flagged mismatched, never borrowed |
 | ARG-PRIVACY-{MODE} | fake secret in input and environment | present in job.failed and the run report, absent from every agent-facing JSON view |
 | ARG-CONTRACT-{MODE} | JSON outputs | stdout is exactly one document; envelopes validate against the published schemas |
-| ARG-PARTIAL | MultiDataTile, ``continue`` | exit 2, partial, only the broken tile failed; ``diagnose --fail-on-error`` exits 1 |
+| ARG-PARTIAL | MultiDataTile, ``continue``, healthy tile after the broken one | exit 2, partial, only the broken tile failed, the later tile completed and published; ``diagnose --fail-on-error`` exits 1 |
 | ARG-V1-{MODE} | ``run --legacy`` v1 callback | same structured / invoice / raw artifacts and job.failed as the v2 flow |
 | ARG-MIGRATE | migration Skill worked example | v1 entry, converted flow and artifact-node flow agree (installed Skill copy) |
 
@@ -45,7 +45,7 @@ BV table:
 |----|----------|----------|
 | ARG-FAIL-INV | single-tile mode, its only tile broken | zero completed tiles, one failed iteration |
 | ARG-FAIL-SMT | broken row runs first (last row is tile 0) | exactly one iteration recorded |
-| ARG-FAIL-{XLS,MDT,RDF} | broken second tile | tile 0 completed and published, tile 1 failed |
+| ARG-FAIL-{XLS,MDT,RDF} | broken second tile | tile 0 completed and published (read before the repair rerun), tile 1 failed |
 """
 
 from __future__ import annotations
@@ -189,6 +189,9 @@ class Scenario:
     repaired: dict[str, Any] = field(default_factory=dict)
     failed_events: list[dict[str, Any]] = field(default_factory=list)
     failed_job: str = ""
+    #: Each earlier tile's ``structured/measurement.txt`` (None if absent), read right
+    #: after the failing run and before the repair rerun rewrites it.
+    failed_tiles: dict[int, str | None] = field(default_factory=dict)
     after_doctor: list[str] = field(default_factory=list)
 
     @property
@@ -225,6 +228,9 @@ def _play(mode: str, root: Path, pack: Pack) -> Scenario:
     logs = scenario.data / "logs"
     scenario.failed_events = [json.loads(line) for line in (logs / f"events_{run_id}.jsonl").read_text(encoding="utf-8").splitlines()]
     scenario.failed_job = (scenario.data / "job.failed").read_text(encoding="utf-8")
+    for index in range(scenario.spec.failing_index):
+        published = corpus.tile_dir(scenario.data, index) / "structured" / "measurement.txt"
+        scenario.failed_tiles[index] = published.read_text(encoding="utf-8") if published.is_file() else None
     report = logs / f"run_report_{run_id}.json"
     # The debugging Skill diagnoses a copy named failure-report.json, then the original.
     shutil.copyfile(report, project / "failure-report.json")
@@ -310,8 +316,9 @@ def test_failing_run_is_located_by_report_events_and_diagnosis__arg_fail(scenari
     broken = failed["iterations"][spec.failing_index]
     (failed_call,) = [call for call in broken["node_calls"] if call["status"] == "failed"]
     assert failed_call["node_id"] == "processing.parse_measurement"
-    for index in range(spec.failing_index):
-        assert (corpus.tile_dir(scenario.data, index) / "structured" / "measurement.txt").is_file()
+    # (read right after the failing run: the repair rerun would recreate them)
+    expected_tiles = {index: f"{float(corpus.GOOD_VALUES[spec.tile_sources[index]])}\n" for index in range(spec.failing_index)}
+    assert scenario.failed_tiles == expected_tiles
     # And: job.failed carries the user error
     assert scenario.failed_job.splitlines()[0] == "ErrorCode=1"
     # And: the event log of this run records the same failed call and the run outcome
@@ -394,10 +401,23 @@ def test_agent_facing_json_omits_the_fake_secret__arg_privacy(scenario: Scenario
     # Then: no default agent-facing JSON view carries it, the input path or the environment value
     views = scenario.agent_facing()
     assert {"doctor", "lint", "diagnose", "diagnose-copy", "explain", "diagnose-stale", "explain-stale"} <= set(views)
+    # Decoded strings, not raw stdout: JSON escapes a Windows path's backslashes.
+    forbidden = (corpus.FAKE_SECRET, corpus.SECRET_ENV, str(scenario.project), scenario.project.as_posix(), str(scenario.project.resolve()))
     for key, result in views.items():
-        assert corpus.FAKE_SECRET not in result.stdout, key
-        assert corpus.SECRET_ENV not in result.stdout, key
-        assert str(scenario.project) not in result.stdout, key
+        for text in (result.stdout, *_strings(_json(result))):
+            leaked = [value for value in forbidden if value in text]
+            assert not leaked, f"{key}: {leaked}"
+
+
+def _strings(document: Any) -> list[str]:
+    """Return every string key and value of a decoded JSON document."""
+    if isinstance(document, str):
+        return [document]
+    if isinstance(document, dict):
+        return [text for key, value in document.items() for text in (key, *_strings(value))]
+    if isinstance(document, list):
+        return [text for item in document for text in _strings(item)]
+    return []
 
 
 def _validator(name: str) -> Draft202012Validator:
@@ -425,18 +445,25 @@ def test_json_outputs_follow_the_versioned_contracts__arg_contract(scenario: Sce
 
 
 def test_continue_policy_gives_partial_exit_semantics__arg_partial(tmp_path: Path, pack: Pack) -> None:
-    """ARG-PARTIAL: MultiDataTile under ``continue`` finishes the good tile and exits 2."""
-    # Given: the bad MultiDataTile corpus and a documented --config override
+    """ARG-PARTIAL: MultiDataTile under ``continue`` runs past the broken tile and exits 2."""
+    # Given: the bad MultiDataTile corpus plus a healthy third file after the broken
+    # second one (so continuing is observable), and a documented --config override
     project = corpus.build("multidatatile", tmp_path / "project", bad=True)
+    (project / "data" / "inputdata" / "m2.txt").write_text("7.5", encoding="utf-8")
     (project / "overrides.yaml").write_text("execution:\n  on_iteration_error: continue\n", encoding="utf-8")
     # When: running with the override
     result = corpus.rdetoolkit(project, *pack.command("authoring-run"), "--config", "overrides.yaml")
-    # Then: partial, the good tile published, only the broken tile failed
+    # Then: partial, only the broken tile failed, and the tile after it still ran
     report = _run_report(project, result)
     assert result.returncode == 2
     assert report["status"] == "partial"
-    assert [iteration["status"] for iteration in report["iterations"]] == ["completed", "failed"]
-    assert (project / "data" / "structured" / "measurement.txt").read_text(encoding="utf-8") == "2.5\n"
+    assert [(iteration["index"], iteration["status"]) for iteration in report["iterations"]] == [(0, "completed"), (1, "failed"), (2, "completed")]
+    data = project / "data"
+    for index, (source, value) in enumerate((("m0.txt", "2.5"), ("m2.txt", "7.5"))):
+        tile = corpus.tile_dir(data, 2 * index)
+        assert json.loads((tile / "structured" / "inputs.json").read_text(encoding="utf-8")) == {"iteration": 2 * index, "measurements": [source]}
+        assert (tile / "structured" / "measurement.txt").read_text(encoding="utf-8") == f"{float(value)}\n"
+        assert json.loads((tile / "meta" / "metadata.json").read_text(encoding="utf-8")) == _expected_metadata(float(value))
     path = f"data/logs/run_report_{report['run_id']}.json"
     diagnose = corpus.rdetoolkit(project, "report", "diagnose", path, "--json", "--fail-on-error")
     assert diagnose.returncode == 1

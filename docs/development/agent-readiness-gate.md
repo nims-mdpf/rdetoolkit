@@ -52,11 +52,11 @@ workbook filled in. It then runs, each command in its own process:
 |------|-----------------------------------------------|----------|
 | discovery | `nodes lint --json` (`testing-lint`), `nodes lint --module processing --json`, `flows list --module processing --json`, the `authoring-discovery` commands | lint passed; `processing.pipeline` listed; JSON on stdout |
 | preflight | `doctor --format json --ref processing:pipeline` (`authoring-doctor`) | passed, detected mode, `flow_executed: false`, nothing written |
-| failing run | `run processing:pipeline` (`authoring-run`) on an input with one broken measurement | exit 1; stdout equals the saved run report; fail-fast stops at the broken tile; earlier tiles published; code 1 in the report and `job.failed`; the run's event log records the same failed call |
+| failing run | `run processing:pipeline` (`authoring-run`) on an input with one broken measurement | exit 1; stdout equals the saved run report; fail-fast stops at the broken tile; earlier tiles published (read before the repair rerun); code 1 in the report and `job.failed`; the run's event log records the same failed call |
 | diagnosis | `report diagnose failure-report.json --json` (`debugging-diagnose`) on a copy, then on the original, and `report explain --format json` | the same iteration, node, call id and code; iteration evidence `missing` for the copy and `verified` for the original |
 | repair | archive `job.failed` (as the debugging Skill says), fix the input, rerun the same project | exit 0; each tile's `structured/`, `meta/metadata.json` (units, variable rows), invoice and raw copy; the injected `InputPaths`, `OutputContext` and `IterationInfo` of each tile |
 | stale report | diagnose and explain the old report after the rerun | still the old run's failure; iteration details rewritten by the rerun are flagged `mismatched` and not used |
-| privacy | a fake secret in the failing input, the error message and the environment | present in `job.failed` and the run report (negative control); absent from every doctor, lint, diagnose and explain JSON output, as are the environment variable name and the project path |
+| privacy | a fake secret in the failing input, the error message and the environment | present in `job.failed` and the run report (negative control); absent from every doctor, lint, diagnose and explain JSON output (raw stdout and every decoded string), as are the environment variable name and the project path |
 | contracts | all JSON output | stdout is exactly one document; envelopes validate against `docs/usage/diagnostics.schema.json` and `diagnostics-report.schema.json`; producer version is the installed runtime |
 | new-code check | the project files and the four new-code Skills | no `custom_dataset_function`, `--legacy` or v1 path types |
 
@@ -69,7 +69,8 @@ with another as its oracle.
 Single cases:
 
 - **Partial exit semantics:** MultiDataTile under `on_iteration_error: continue`
-  (via `run --config`) exits 2 with status `partial`, and
+  (via `run --config`), with a healthy tile after the broken one, runs and
+  publishes that later tile, exits 2 with status `partial`, and
   `report diagnose --fail-on-error` exits 1.
 - **Retained v1 compatibility:** `run --legacy legacy_dataset.py::dataset` on
   every mode gives the same structured, invoice and raw files and the same
