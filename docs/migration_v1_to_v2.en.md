@@ -436,7 +436,9 @@ sem:
 A flow reads it as `config.custom["sem"]["magnification_key"]`. When the
 section and `custom:` both define the same name, `custom:` wins. A top-level
 value that is not a mapping (for example `vendor: acme`) is also kept under
-`custom`, but it warns and asks you to move it under `custom:`.
+`custom`, but it warns and asks you to move it under `custom:`. A section
+named like a v1 section, such as `sytem:`, also warns and names the section it
+resembles: its settings are kept under `custom` and are not applied.
 
 A project-root `rdeconfig.yaml` or `[tool.rdetoolkit]` is the v2 form and
 rejects unknown top-level sections (E1002), so a typo such as `sytem:` fails

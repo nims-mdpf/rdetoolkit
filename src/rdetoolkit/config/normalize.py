@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import copy
+import difflib
 import sys
 import warnings
 from collections.abc import Mapping
@@ -214,19 +215,17 @@ def _legacy_custom(data: Mapping[str, Any]) -> dict[str, Any]:
 
     A top-level mapping section (``sem:``, ``xps:``, ...) is how v1 templates
     keep their own settings, so it becomes ``custom[<section>]`` silently
-    (#624). Any other unknown top-level value still warns.
+    (#624). A non-mapping value, or a mapping named like a v1 section
+    (``sytem:``), still warns: the latter is most likely a typo whose settings
+    would otherwise fall back to their defaults unnoticed.
     """
     custom: dict[str, Any] = {}
     for key, value in data.items():
         if key in _V1_TOP_LEVEL_KEYS:
             continue
-        if not isinstance(value, Mapping):
-            warnings.warn(
-                f"Legacy configuration key {key!r} is preserved under custom; "
-                "move it under `custom:` to silence this warning.",
-                UserWarning,
-                stacklevel=4,
-            )
+        message = _legacy_key_warning(key, value)
+        if message is not None:
+            warnings.warn(message, UserWarning, stacklevel=4)
         custom[key] = copy.deepcopy(value)
     explicit = data.get("custom", {})
     if not isinstance(explicit, Mapping):
@@ -234,6 +233,20 @@ def _legacy_custom(data: Mapping[str, Any]) -> dict[str, Any]:
         raise _config_error(reason)
     custom.update(copy.deepcopy(explicit))
     return custom
+
+
+def _legacy_key_warning(key: str, value: object) -> str | None:
+    """Return the warning for an unknown v1 top-level key, or ``None`` for a template section."""
+    preserved = f"Legacy configuration key {key!r} is preserved under custom"
+    near = difflib.get_close_matches(key, sorted(_V1_TOP_LEVEL_KEYS), n=1, cutoff=0.8)
+    if near:
+        return (
+            f"{preserved} and its settings are not applied; {key!r} looks like the v1 section "
+            f"{near[0]!r}. Fix the section name, or move it under `custom:` if it is template settings."
+        )
+    if not isinstance(value, Mapping):
+        return f"{preserved}; move it under `custom:` to silence this warning."
+    return None
 
 
 #: Filenames the v1 loader accepts, in its own priority order
