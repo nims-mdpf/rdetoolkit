@@ -32,6 +32,11 @@ jobs:
             paths: tests/v2/cli tests/v2/nodes tests/v2/docs
           - shard: contracts-property
             paths: tests/v2/ga tests/v2/contract tests/v2/modes tests/v2/api tests/v2/testing tests/property
+          # The #676 readiness gate is subprocess-bound (several minutes); its own
+          # shard keeps the others balanced. The agent-readiness job runs it again
+          # against the wheel.
+          - shard: acceptance
+            paths: tests/v2/acceptance
           - shard: remainder
             paths: >-
               tests
@@ -39,6 +44,7 @@ jobs:
               --ignore=tests/v2/cli --ignore=tests/v2/nodes --ignore=tests/v2/docs
               --ignore=tests/v2/ga --ignore=tests/v2/contract --ignore=tests/v2/modes
               --ignore=tests/v2/api --ignore=tests/v2/testing --ignore=tests/property
+              --ignore=tests/v2/acceptance
     env:
       HYPOTHESIS_PROFILE: ci
       # Absolute, so a test that changes the working directory cannot move it.
@@ -127,11 +133,11 @@ jobs:
       - name: Require the shards to partition the complete selection
         run: |
           .venv/bin/python scripts/check_test_partition.py ci-results/test-nodeids.txt \
-            shards/nodeids-graph-runner.txt shards/nodeids-cli-nodes-docs.txt shards/nodeids-contracts-property.txt shards/nodeids-remainder.txt
+            shards/nodeids-graph-runner.txt shards/nodeids-cli-nodes-docs.txt shards/nodeids-contracts-property.txt shards/nodeids-acceptance.txt shards/nodeids-remainder.txt
       - name: Combine the shards' coverage
         run: |
           .venv/bin/python -m coverage combine --keep --rcfile=pyproject.toml \
-            shards/.coverage.graph-runner shards/.coverage.cli-nodes-docs shards/.coverage.contracts-property shards/.coverage.remainder
+            shards/.coverage.graph-runner shards/.coverage.cli-nodes-docs shards/.coverage.contracts-property shards/.coverage.acceptance shards/.coverage.remainder
           .venv/bin/python -m coverage xml --rcfile=pyproject.toml -o ci-results/coverage.xml
           .venv/bin/python -m coverage json --rcfile=pyproject.toml -o ci-results/coverage.json
       - name: Enforce the overall 80% coverage gate
@@ -161,8 +167,8 @@ jobs:
       - name: Validate the complete report set
         run: |
           for report in ci-results/test-nodeids.txt ci-results/coverage.xml ci-results/coverage.json .coverage \
-              shards/nodeids-graph-runner.txt shards/nodeids-cli-nodes-docs.txt shards/nodeids-contracts-property.txt shards/nodeids-remainder.txt \
-              shards/junit-graph-runner.xml shards/junit-cli-nodes-docs.xml shards/junit-contracts-property.xml shards/junit-remainder.xml; do
+              shards/nodeids-graph-runner.txt shards/nodeids-cli-nodes-docs.txt shards/nodeids-contracts-property.txt shards/nodeids-acceptance.txt shards/nodeids-remainder.txt \
+              shards/junit-graph-runner.xml shards/junit-cli-nodes-docs.xml shards/junit-contracts-property.xml shards/junit-acceptance.xml shards/junit-remainder.xml; do
             test -s "$report"
           done
       - name: Upload the canonical test results
@@ -269,6 +275,38 @@ jobs:
             tests/v2/test_retired_agent_guide.py \
             tests/v2/test_wheel_layout.py
 
+  # #676: the coding-agent readiness gate (docs/development/agent-readiness-gate.md)
+  # runs the documented agent loop on all five modes against the wheel and an
+  # installed, version-matched Skills pack. Dependencies are pinned to uv.lock.
+  agent-readiness:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - uses: Swatinem/rust-cache@v2
+      - name: Build the wheel
+        run: uv tool run --from "maturin>=1.4,<2" maturin build --release --out dist
+      - name: Install the wheel and pytest into a clean venv
+        run: |
+          uv export --frozen --no-hashes --no-emit-project --all-groups --all-extras -o "$RUNNER_TEMP/constraints.txt"
+          uv venv --python 3.12 "$RUNNER_TEMP/gate-venv"
+          uv pip install --python "$RUNNER_TEMP/gate-venv/bin/python" -c "$RUNNER_TEMP/constraints.txt" dist/rdetoolkit-*.whl pytest
+      - name: Run the agent readiness gate
+        run: python scripts/agent_readiness_gate.py --python "$RUNNER_TEMP/gate-venv/bin/python" --work "$RUNNER_TEMP/agent-readiness"
+      - name: Upload the gate's projects, reports and command outputs
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: agent-readiness-evidence
+          path: ${{ runner.temp }}/agent-readiness
+          retention-days: 7
+
   changelog:
     runs-on: ubuntu-latest
     steps:
@@ -288,7 +326,7 @@ jobs:
     # Retain the former badge workflow's context, including on docs branches.
     name: test
     if: ${{ always() }}
-    needs: [pytest-shard, full-suite, quality, rust, wheel-install-gate, changelog]
+    needs: [pytest-shard, full-suite, quality, rust, wheel-install-gate, agent-readiness, changelog]
     runs-on: ubuntu-latest
     steps:
       - name: Require every validation job to succeed
@@ -299,7 +337,7 @@ jobs:
           import json
           import os
           results = json.loads(os.environ['RESULTS'])
-          expected = {'pytest-shard', 'full-suite', 'quality', 'rust', 'wheel-install-gate', 'changelog'}
+          expected = {'pytest-shard', 'full-suite', 'quality', 'rust', 'wheel-install-gate', 'agent-readiness', 'changelog'}
           assert set(results) == expected, results
           assert all(job['result'] == 'success' for job in results.values()), results
           PY

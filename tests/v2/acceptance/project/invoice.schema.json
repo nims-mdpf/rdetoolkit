@@ -1,0 +1,22 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://example.invalid/rdetoolkit/acceptance/invoice.schema.json",
+    "description": "Agent readiness acceptance corpus (#676)",
+    "type": "object",
+    "required": ["custom", "sample"],
+    "properties": {
+        "custom": {
+            "type": "object",
+            "label": {"ja": "固有情報", "en": "Custom Information"},
+            "required": ["operator"],
+            "properties": {
+                "operator": {"label": {"ja": "測定者", "en": "Operator"}, "type": "string"}
+            }
+        },
+        "sample": {
+            "type": "object",
+            "label": {"ja": "試料情報", "en": "Sample Information"},
+            "properties": {}
+        }
+    }
+}

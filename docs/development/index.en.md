@@ -2,6 +2,8 @@
 
 Repository automation and code-search decisions are maintained in the [tooling policy](tooling-policy.md).
 
+The release gate for the coding-agent workflow is described in [coding-agent readiness gate](agent-readiness-gate.md).
+
 ## Purpose
 
 This section explains how to contribute to the RDEToolKit project and set up a development environment. We welcome various forms of contribution, including bug fixes, new feature additions, and documentation improvements.

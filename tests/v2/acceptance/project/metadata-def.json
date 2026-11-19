@@ -1,0 +1,12 @@
+{
+    "sample_count": {
+        "name": {"ja": "測定数", "en": "Measurement count"},
+        "schema": {"type": "integer"}
+    },
+    "position": {
+        "name": {"ja": "位置", "en": "Position"},
+        "schema": {"type": "number"},
+        "unit": "nm",
+        "variable": 1
+    }
+}

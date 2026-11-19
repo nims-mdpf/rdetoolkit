@@ -116,6 +116,19 @@ jobs:
           uv run --isolated --frozen --only-group dev --python "${{ matrix.python-version }}" \
             python scripts/check_typed_distribution.py --wheel dist/*.whl
 
+      - name: Agent readiness gate (#676)
+        shell: bash
+        env:
+          UV_NO_CONFIG: 1
+        run: |
+          # The documented agent loop on all five modes, against this leg's
+          # wheel and an installed Skills pack (docs/development/agent-readiness-gate.md).
+          uv export --frozen --no-hashes --no-emit-project --all-groups --all-extras -o "$RUNNER_TEMP/constraints.txt"
+          uv venv --python "${{ matrix.python-version }}" "$RUNNER_TEMP/gate-venv"
+          if [ "$RUNNER_OS" = "Windows" ]; then gate_python="$RUNNER_TEMP/gate-venv/Scripts/python.exe"; else gate_python="$RUNNER_TEMP/gate-venv/bin/python"; fi
+          uv pip install --python "$gate_python" -c "$RUNNER_TEMP/constraints.txt" dist/*.whl pytest
+          python scripts/agent_readiness_gate.py --python "$gate_python" --work "$RUNNER_TEMP/agent-readiness"
+
       - name: Upload built wheels as artifacts
         uses: actions/upload-artifact@v7
         with:

@@ -18,6 +18,7 @@ EP table (written before implementation):
 | shard listings vs complete collection | missing, extra, duplicate, empty fail | CI-013 |
 | shard matrix result | only success passes the aggregate | CI-014 |
 | Hypothesis profile in a shard without tests/property | CI profile loaded by the plugin | CI-016 |
+| agent readiness gate (#676) | wheel + installed Skills pack runner, required, evidence on failure, every native build leg | CI-017 |
 | shard coverage data | gates apply to the combined data; absent shard fails | CI-015 |
 
 BV table:
@@ -59,7 +60,7 @@ MODULES = (
     "runner/planner.py",
     "runner/finalize.py",
 )
-REQUIRED_JOBS = ("pytest-shard", "full-suite", "quality", "rust", "wheel-install-gate", "changelog")
+REQUIRED_JOBS = ("pytest-shard", "full-suite", "quality", "rust", "wheel-install-gate", "agent-readiness", "changelog")
 REMAINDER = next(
     entry["paths"]
     for entry in yaml.load((ROOT / ".github/workflows/v2-ci.yml").read_text(encoding="utf-8"), Loader=yaml.BaseLoader)["jobs"]["pytest-shard"]["strategy"]["matrix"]["include"]  # noqa: S506
@@ -578,22 +579,24 @@ def _combine_commands(job: dict[str, Any]) -> str:
     return (step["run"] + report["run"]).replace(".venv/bin/python", shlex.quote(sys.executable)).replace("pyproject.toml", shlex.quote(str(ROOT / "pyproject.toml")))
 
 
-@pytest.mark.parametrize(("last", "passes"), [(20, True), (19, False), (None, False)], ids=["combined-80", "combined-79", "absent-shard"])
-def test_gates_apply_to_combined_coverage__ci_015(tmp_path: Path, last: int | None, passes: bool) -> None:
+@pytest.mark.parametrize(("shortfall", "passes"), [(0, True), (1, False), (None, False)], ids=["combined-80", "combined-79", "absent-shard"])
+def test_gates_apply_to_combined_coverage__ci_015(tmp_path: Path, shortfall: int | None, passes: bool) -> None:
     """CI-015: no shard alone reaches 80%, the combined data decides, and an absent shard fails."""
-    # Given: four shards that each cover a disjoint 20-line part of the same 100-line module.
+    # Given: shards that each cover a disjoint 80/N-line part of the same 100-line module.
     source = tmp_path / "rdetoolkit" / MODULES[0]
     source.parent.mkdir(parents=True)
     source.write_text("\n".join(f"value_{line} = {line}" for line in range(1, 101)) + "\n", encoding="utf-8")
     (tmp_path / "shards").mkdir()
     (tmp_path / "ci-results").mkdir()
     names = list(_shards(_workflow()["jobs"]["pytest-shard"]))
-    assert len(names) == 4
+    share, remainder = divmod(80, len(names))
+    assert remainder == 0 and share < 80, names  # every shard alone stays far below the gate
     for index, name in enumerate(names):
-        count = last if index == len(names) - 1 else 20
+        last = None if shortfall is None else share - shortfall
+        count = last if index == len(names) - 1 else share
         if count is not None:
             data = coverage.CoverageData(basename=str(tmp_path / "shards" / f".coverage.{name}"))
-            lines = range(1 + 20 * index, 1 + 20 * index + count)
+            lines = range(1 + share * index, 1 + share * index + count)
             data.add_arcs({str(source): [(-1, lines[0]), *zip(lines, lines[1:], strict=False), (lines[-1], -1)]})
             data.write()
     # When: running the aggregate's real combine and overall-gate commands.
@@ -634,3 +637,32 @@ def test_every_shard_loads_the_ci_profile__ci_016(tmp_path: Path, plugin: bool) 
     # own (which differ locally and on CI runners), never the repository's CI profile.
     assert result.returncode == 0, result.stdout + result.stderr
     assert ("PROFILE 50 0:00:05\n" in result.stdout) is plugin, result.stdout
+
+
+def _step(job: dict[str, Any], name: str) -> dict[str, Any]:
+    return next(step for step in job["steps"] if step.get("name") == name)
+
+
+def test_agent_readiness_gate_is_required_and_runs_the_installed_wheel__ci_017() -> None:
+    """CI-017: the #676 gate runs its runner on a clean wheel venv, blocks `test`, keeps evidence, and runs on every native build leg."""
+    # Given: the develop/v2 PR workflow and the native build matrix
+    job = _workflow()["jobs"]["agent-readiness"]
+    native = _workflow("build-test-develop.yml")["jobs"]["test-build-multi-platform"]
+    # Then: the wheel goes into a fresh venv pinned to uv.lock, with pytest as the only extra
+    install = _collapse(_step(job, "Install the wheel and pytest into a clean venv")["run"])
+    assert "uv export --frozen" in install and 'uv venv --python 3.12 "$RUNNER_TEMP/gate-venv"' in install
+    assert install.rstrip().endswith('-c "$RUNNER_TEMP/constraints.txt" dist/rdetoolkit-*.whl pytest')
+    # And: the runner is the documented reproducible command, not an ad hoc pytest call
+    command = 'python scripts/agent_readiness_gate.py --python "$RUNNER_TEMP/gate-venv/bin/python" --work "$RUNNER_TEMP/agent-readiness"'
+    assert _step(job, "Run the agent readiness gate")["run"].strip() == command
+    assert command.split(" --python", 1)[0] in (ROOT / "docs/development/agent-readiness-gate.md").read_text(encoding="utf-8")
+    # And: a failure keeps the projects and reports for inspection
+    upload = _step(job, "Upload the gate's projects, reports and command outputs")
+    assert (upload["if"], upload["uses"], upload["with"]["path"]) == ("${{ failure() }}", "actions/upload-artifact@v7", "${{ runner.temp }}/agent-readiness")
+    # And: the required `test` context depends on it (CI-011 executes that gate)
+    assert "agent-readiness" in _workflow()["jobs"]["required"]["needs"]
+    # And: every supported OS x Python leg of the native build runs the same runner on its own wheel
+    native_run = _step(native, "Agent readiness gate (#676)")["run"]
+    assert 'python scripts/agent_readiness_gate.py --python "$gate_python" --work "$RUNNER_TEMP/agent-readiness"' in native_run
+    assert 'uv venv --python "${{ matrix.python-version }}"' in native_run
+    assert {"ubuntu-latest", "windows-latest", "macos-latest"} <= set(native["strategy"]["matrix"]["os"])
