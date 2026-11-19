@@ -1,0 +1,208 @@
+{
+  "schema_version": 1,
+  "profile": "full",
+  "established_on": {
+    "timestamp_utc": "2026-11-18T22:50:14+00:00",
+    "hardware": {
+      "machine": "x86_64",
+      "cpu_model": "Intel(R) Xeon(R) w3-2423",
+      "cpu_count": 12,
+      "memory_total_mib": 63933.921875
+    },
+    "os": "Linux-6.8.0-147-generic-x86_64-with-glibc2.39",
+    "python": {
+      "version": "3.13.1",
+      "implementation": "CPython"
+    },
+    "dependencies": {
+      "rdetoolkit": "2.0.0rc1",
+      "matplotlib": "3.10.7",
+      "numpy": "2.3.5",
+      "pandas": "2.3.3",
+      "polars": "1.35.2",
+      "openpyxl": "3.1.5",
+      "plotly": "6.4.0",
+      "pydantic": "2.12.4",
+      "jsonschema": "4.25.1"
+    },
+    "git_revision": "3920aefa2eaad503b34f708a8cc16990ef46c98e",
+    "repeat": 3
+  },
+  "calibration_seconds": 0.04593072994612157,
+  "thresholds": {
+    "normalized_seconds": {
+      "max_ratio": 2.0
+    },
+    "peak_rss_delta_mib": {
+      "max_ratio": 1.5,
+      "slack": 64.0
+    },
+    "live_figures_max": {
+      "max_ratio": 1.5,
+      "slack": 4.0
+    },
+    "rss_growth_mib": {
+      "max_ratio": 2.0,
+      "slack": 32.0
+    }
+  },
+  "cases": {
+    "render_overlay_1": {
+      "images": 1,
+      "figures_open": 0,
+      "live_figures_after_collect": 0,
+      "manifest_sha256": "c0460983f993af9c209c7f33efdf5384e81d44fd1c9310ab5564fbd712656d4e",
+      "normalized_seconds": 4.099047810797394,
+      "peak_rss_delta_mib": 18.515625,
+      "live_figures_max": 2
+    },
+    "render_overlay_10": {
+      "images": 1,
+      "figures_open": 0,
+      "live_figures_after_collect": 0,
+      "manifest_sha256": "f28335d739264405eb39464d9a5dcde0791c9fa0b1f4789a0bb4589a9e89034a",
+      "normalized_seconds": 5.954368702060962,
+      "peak_rss_delta_mib": 13.5859375,
+      "live_figures_max": 2
+    },
+    "render_overlay_100": {
+      "images": 1,
+      "figures_open": 0,
+      "live_figures_after_collect": 0,
+      "manifest_sha256": "e3b3baf5edf5b21c21ffea8bf19175a5f3a49f4616a1083050a93b8ae1780149",
+      "normalized_seconds": 8.255706790896864,
+      "peak_rss_delta_mib": 18.09765625,
+      "live_figures_max": 2
+    },
+    "render_overlay_1000": {
+      "images": 1,
+      "figures_open": 0,
+      "live_figures_after_collect": 0,
+      "manifest_sha256": "f2bbe3585bcab4a98423be8a83e4c78789b268f357f63215df076856b13dcb73",
+      "normalized_seconds": 23.067953334018718,
+      "peak_rss_delta_mib": 77.87890625,
+      "live_figures_max": 3
+    },
+    "render_both_1": {
+      "images": 2,
+      "figures_open": 0,
+      "live_figures_after_collect": 0,
+      "manifest_sha256": "204b11b9408d15c6bceb692978e5e71488100a856ebc24b80d7630f99fee9510",
+      "normalized_seconds": 7.004439999166021,
+      "peak_rss_delta_mib": 21.30078125,
+      "live_figures_max": 3
+    },
+    "render_both_10": {
+      "images": 11,
+      "figures_open": 0,
+      "live_figures_after_collect": 0,
+      "manifest_sha256": "507de0f236320719ebc20c68d1181ed1f910c60faa493cdbf34e287b02aa3eab",
+      "normalized_seconds": 34.90343458165867,
+      "peak_rss_delta_mib": 70.78515625,
+      "live_figures_max": 7
+    },
+    "render_both_100": {
+      "images": 101,
+      "figures_open": 0,
+      "live_figures_after_collect": 0,
+      "manifest_sha256": "3f5600800d5c05475d9304a913e7851e19ff5a5e04406155128c5a5e191a6071",
+      "normalized_seconds": 301.28544817460556,
+      "peak_rss_delta_mib": 88.9140625,
+      "live_figures_max": 9
+    },
+    "render_repeat": {
+      "figures_open": 0,
+      "live_figures_after_collect": 0,
+      "normalized_seconds": 1037.3180940047325,
+      "peak_rss_delta_mib": 82.4609375,
+      "live_figures_max": 10,
+      "rss_growth_mib": -14.12890625
+    },
+    "csv_parse_rows": {
+      "status": "standard",
+      "normalized_seconds": 1.94910557626207,
+      "peak_rss_delta_mib": 31.05859375,
+      "parsed_rows": 100000,
+      "parsed_columns": 11
+    },
+    "csv_parse_columns": {
+      "status": "standard",
+      "normalized_seconds": 1.4253587969397405,
+      "peak_rss_delta_mib": 9.67578125,
+      "parsed_rows": 200,
+      "parsed_columns": 1001
+    },
+    "plan_smarttable_100": {
+      "tiles": 100,
+      "status": "smarttable",
+      "normalized_seconds": 0.6003864947537672,
+      "peak_rss_delta_mib": 1.05078125
+    },
+    "plan_smarttable_1000": {
+      "tiles": 1000,
+      "status": "smarttable",
+      "normalized_seconds": 5.504909442256898,
+      "peak_rss_delta_mib": 4.6953125
+    },
+    "run_smarttable_100": {
+      "status": "success",
+      "iterations": 100,
+      "normalized_seconds": 24.885516457329157,
+      "peak_rss_delta_mib": 9.94921875
+    },
+    "run_smarttable_1000": {
+      "status": "success",
+      "iterations": 1000,
+      "normalized_seconds": 225.3438978047775,
+      "peak_rss_delta_mib": 10.21484375
+    },
+    "plan_multidatatile_100": {
+      "tiles": 100,
+      "status": "multidatatile",
+      "normalized_seconds": 0.7925992035027271,
+      "peak_rss_delta_mib": 2.05859375
+    },
+    "plan_multidatatile_1000": {
+      "tiles": 1000,
+      "status": "multidatatile",
+      "normalized_seconds": 6.392859602671519,
+      "peak_rss_delta_mib": 5.5859375
+    },
+    "run_multidatatile_100": {
+      "status": "success",
+      "iterations": 100,
+      "normalized_seconds": 14.82300709679132,
+      "peak_rss_delta_mib": 11.19921875
+    },
+    "run_multidatatile_1000": {
+      "status": "success",
+      "iterations": 1000,
+      "normalized_seconds": 149.51459987909118,
+      "peak_rss_delta_mib": 12.9453125
+    },
+    "plan_excelinvoice_100": {
+      "tiles": 100,
+      "status": "excelinvoice",
+      "normalized_seconds": 2.0517158116457503,
+      "peak_rss_delta_mib": 0.640625
+    },
+    "plan_excelinvoice_300": {
+      "tiles": 300,
+      "status": "excelinvoice",
+      "normalized_seconds": 6.702574387232612,
+      "peak_rss_delta_mib": 1.89453125
+    },
+    "run_excelinvoice_100": {
+      "status": "success",
+      "iterations": 100,
+      "normalized_seconds": 58.2898233492353,
+      "peak_rss_delta_mib": 11.1171875
+    },
+    "run_excelinvoice_300": {
+      "status": "success",
+      "iterations": 300,
+      "normalized_seconds": 244.59484595866792,
+      "peak_rss_delta_mib": 11.62890625
+    }
+  }
+}

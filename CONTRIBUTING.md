@@ -213,6 +213,27 @@ HYPOTHESIS_PROFILE=ci pytest tests/property/ -v -m property
 
 Property-Based Testingの詳細は `CLAUDE.md` のPBTセクションを参照してください。
 
+#### 性能・リソースのリリースゲート (v2)
+
+描画リソースとマルチタイル処理量は2段階で確認します。入力はすべて
+`tests/v2/perf/synthetic.py` が生成する合成データで、実データは使いません。
+
+- `tests/v2/perf/`: 通常のテストスイートに含まれる高速スモークテスト
+  (図の解放、繰り返し描画でのヒープ増加、成果物の決定性、100行SmartTableの
+  continue / fail_fast / 中断後の後始末)。
+- `scripts/bench_ga.py`: 再現可能なベンチマーク。各ケースを別プロセスで実行し、
+  ハードウェア・Python・依存バージョン・データサイズ・コマンド・計測値を
+  JSONに記録します。`v2 GA benchmark` ワークフローがクリーンなwheel上で実行し、
+  `scripts/bench_ga_baseline.json` と比較して閾値を超えると失敗します。
+
+```bash
+# ベースラインと比較 (閾値超過・図の残存で exit 1)
+python scripts/bench_ga.py --baseline scripts/bench_ga_baseline.json --output bench.json
+```
+
+性能の低下を受け入れる場合は、`--write-baseline scripts/bench_ga_baseline.json`
+で再生成したベースラインをPRに含め、差分をレビューで確認してください。
+
 ### コミットとプッシュ
 
 変更をコミットし、リモートリポジトリにプッシュします。
