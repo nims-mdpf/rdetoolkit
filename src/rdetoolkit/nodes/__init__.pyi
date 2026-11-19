@@ -18,6 +18,7 @@ from rdetoolkit.nodes.image import render_png as render_png
 from rdetoolkit.nodes.image import copy_file as copy_file, save_image as save_image
 from rdetoolkit.nodes.io import detect_encoding as detect_encoding, list_excel_sheets as list_excel_sheets, read_lines as read_lines
 from rdetoolkit.nodes.invoice import describe_features as describe_features
+from rdetoolkit.nodes.raw import remove_raw_copy as remove_raw_copy, replace_raw_copy as replace_raw_copy
 from rdetoolkit.nodes.logfile import ArtifactLogger as ArtifactLogger, artifact_logger as artifact_logger
 
 def as_node(instance: Any, *, method: str, id: str | None = None) -> Callable[..., Any]: ...
