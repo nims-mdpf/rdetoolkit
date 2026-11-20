@@ -15,7 +15,6 @@ import pandas as pd
 
 from rdetoolkit._interrupt import is_run_interrupted
 from rdetoolkit.domain.invoice import load_invoice
-from rdetoolkit.domain.invoice_service import invoice_source_for
 from rdetoolkit.exceptions import StructuredError
 from rdetoolkit.fileops import readf_json, writef_json
 from rdetoolkit.models.invoice_schema import InvoiceSchemaJson
@@ -82,7 +81,9 @@ class SmartTableModeHandler:
         tiles = create_common_tiles(self.kind, context)
         if context.config is None or not context.config.smarttable.save_table_file:
             return tiles
-        return _with_early_exit_tile(tiles, invoice_org=invoice_source_for(self.kind, data_root=context.data_root))
+        # v1 seeds the EarlyExit tile from data/invoice/invoice.json as earlier
+        # tiles left it, not from the run's invoice_org backup (#525).
+        return _with_early_exit_tile(tiles, invoice_org=context.data_root / "invoice" / "invoice.json")
 
     def raw_copy_strategy(self, plan: ExecutionPlan) -> RawCopyStrategy | None:
         """Return no mode-specific raw copy strategy.

@@ -301,9 +301,12 @@ def create_common_tiles(mode: ModeKind, context: PlanningContext) -> Iterator[Ti
     # data/temp/invoice_org.json does not exist while an input checker scans
     # the unpack directory. Pulling the first tile forces the checker's parse
     # (including unpacking) to finish first, which keeps the backup out of the
-    # RDEFormat checker's data/temp/** glob.
+    # RDEFormat checker's data/temp/** glob. SmartTable backs up here too
+    # (#525): after its checker wrote the row CSVs, before tile 0's invoice
+    # overwrites data/invoice/invoice.json. Its backup lives in data/logs, out
+    # of the archive's extraction directory (see invoice_source_for).
     first = next(tiles, None)
-    if mode in {ModeKind.multidatatile, ModeKind.rdeformat}:
+    if mode in {ModeKind.multidatatile, ModeKind.rdeformat, ModeKind.smarttable}:
         _run_invoice_source(
             mode,
             data_root=data_root,

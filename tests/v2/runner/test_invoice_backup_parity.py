@@ -8,7 +8,7 @@ Equivalence partitions (EP):
 | ``Runner.iterate`` | rdeformat | missing v2 delegation | temp backup exists | TC-G0-BACKUP-002 |
 | ``Runner.iterate`` | multidatatile | missing v2 delegation | temp backup exists | TC-G0-BACKUP-003 |
 | ``Runner.iterate`` | invoice | excluded mode | temp backup absent | TC-G0-BACKUP-004 |
-| ``Runner.iterate`` | smarttable | excluded mode | temp backup absent | TC-G0-BACKUP-005 |
+| ``Runner.iterate`` | smarttable | v2 addition (#525): tile 0 overwrites the source | logs backup exists | TC-G0-BACKUP-005 |
 | ``Runner.iterate`` | nested layout | legacy data-root layout | backup content equals source | TC-GR-BACKUP-006 |
 | ``Runner.iterate`` | flat layout | public flat-root layout | backup content equals source | TC-GR-BACKUP-006 |
 | ``Runner.iterate`` | cwd equals root | legacy caller placement | backup content equals source | TC-GR-BACKUP-006 |
@@ -45,11 +45,12 @@ from rdetoolkit.runner.planner import TilePreparation, _flat_layout_invoice_sour
 from rdetoolkit.types import InputPaths, IterationInfo, OutputContext, RdeConfig
 
 _CASES = [
-    pytest.param(ModeKind.excelinvoice, True, id="excelinvoice"),
-    pytest.param(ModeKind.rdeformat, True, id="rdeformat"),
-    pytest.param(ModeKind.multidatatile, True, id="multidatatile"),
-    pytest.param(ModeKind.invoice, False, id="invoice"),
-    pytest.param(ModeKind.smarttable, False, id="smarttable"),
+    pytest.param(ModeKind.excelinvoice, "temp/invoice_org.json", id="excelinvoice"),
+    pytest.param(ModeKind.rdeformat, "temp/invoice_org.json", id="rdeformat"),
+    pytest.param(ModeKind.multidatatile, "temp/invoice_org.json", id="multidatatile"),
+    pytest.param(ModeKind.invoice, None, id="invoice"),
+    # SmartTable extracts its archive into data/temp, so it backs up to data/logs (#525).
+    pytest.param(ModeKind.smarttable, "logs/invoice_org.json", id="smarttable"),
 ]
 
 _LAYOUT_CWD_MODE_CASES = [
@@ -78,14 +79,14 @@ def test_flat_layout_invoice_source_has_mode_independent_signature__tc_gr_backup
     assert json.loads(backup_path.read_text(encoding="utf-8")) == source
 
 
-@pytest.mark.parametrize(("mode", "expects_backup"), _CASES)
+@pytest.mark.parametrize(("mode", "backup_relative"), _CASES)
 def test_run_level_invoice_backup_matches_v1_mode_contract__tc_g0_backup(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     mode: ModeKind,
-    expects_backup: bool,
+    backup_relative: str | None,
 ) -> None:
-    """TC-G0-BACKUP-001..005: only the three v1 modes create a temp backup."""
+    """TC-G0-BACKUP-001..005: the three v1 modes and SmartTable create a backup."""
     # Given: a minimal data tree with a run-level source invoice
     data_root = tmp_path / "data"
     inputdata = data_root / "inputdata"
@@ -144,13 +145,15 @@ def test_run_level_invoice_backup_matches_v1_mode_contract__tc_g0_backup(
     )
     runner.run_id = f"backup-{mode.value}"
     report = runner.iterate(lambda: None, mode, RdeConfig())
-    backup_path = data_root / "temp" / "invoice_org.json"
+    backups = [data_root / relative for relative in ("temp/invoice_org.json", "logs/invoice_org.json")]
 
-    # Then: the v1 mode contract decides whether the temp backup exists
+    # Then: the mode decides whether a backup exists, and where
     assert report.status == "success"
-    assert backup_path.exists() is expects_backup
-    if expects_backup:
-        assert json.loads(backup_path.read_text(encoding="utf-8")) == source
+    assert [path for path in backups if path.exists()] == (
+        [] if backup_relative is None else [data_root / backup_relative]
+    )
+    if backup_relative is not None:
+        assert json.loads((data_root / backup_relative).read_text(encoding="utf-8")) == source
 
 
 @pytest.mark.parametrize(("layout", "cwd_relation", "mode"), _LAYOUT_CWD_MODE_CASES)

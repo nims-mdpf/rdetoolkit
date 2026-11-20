@@ -14,7 +14,7 @@ now decides once and publishes the answer on ``ExecutionPlan.invoice_source``.
 EP table:
 | TC | Class | Input | Expected |
 |----|-------|-------|----------|
-| TC-IRA-3-EP-010 | mode rule | 5 modes | the v1 ``backup_invoice_json_files`` selection |
+| TC-IRA-3-EP-010 | mode rule | 5 modes | the v1 ``backup_invoice_json_files`` selection, plus SmartTable (#525) |
 | TC-IRA-3-EP-011 | plan | invoice mode with a stale backup | ``plan.invoice_source`` is the current invoice |
 | TC-IRA-3-EP-012 | plan | multidatatile | ``plan.invoice_source`` is the backup |
 
@@ -101,7 +101,7 @@ def _overrides() -> dict[str, Any]:
     ("mode", "expected_relative"),
     [
         pytest.param(ModeKind.invoice, "invoice/invoice.json", id="TC-IRA-3-EP-010-invoice"),
-        pytest.param(ModeKind.smarttable, "invoice/invoice.json", id="TC-IRA-3-EP-010-smarttable"),
+        pytest.param(ModeKind.smarttable, "logs/invoice_org.json", id="TC-IRA-3-EP-010-smarttable"),
         pytest.param(ModeKind.excelinvoice, "temp/invoice_org.json", id="TC-IRA-3-EP-010-excelinvoice"),
         pytest.param(ModeKind.multidatatile, "temp/invoice_org.json", id="TC-IRA-3-EP-010-multidatatile"),
         pytest.param(ModeKind.rdeformat, "temp/invoice_org.json", id="TC-IRA-3-EP-010-rdeformat"),

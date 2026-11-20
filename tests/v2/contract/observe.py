@@ -10,7 +10,8 @@ Session I6-1 ruling #2): v1 writes ``rdesys_<ts>.log`` there while v2 writes
 its RunReport JSON, so the *contents* of that one directory are excluded from
 tree parity. The directory entry itself is kept, and the exclusion is applied
 to both sides through :func:`parity_view`, so a frozen expected file is never
-edited to make a comparison pass.
+edited to make a comparison pass. Deliberate v2 departures from v1 are
+projected out of the live side by :mod:`tests.v2.contract.deviations`.
 """
 
 from __future__ import annotations
@@ -19,6 +20,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
+from tests.v2.contract import deviations
 from tests.v2.contract.fixtures import _generate
 
 #: Directory whose contents are contractually excluded from tree parity.
@@ -61,7 +63,7 @@ def observe_v2_run(root: Path, *, exclude_logs: bool = True) -> dict[str, Any]:
         "raw_sha256": _generate._raw_hashes(data_root),  # noqa: SLF001
         "artifact_sha256": _generate._artifact_hashes(data_root),  # noqa: SLF001
     }
-    normalized: dict[str, Any] = _generate.normalize_snapshot(observation, roots=(root,))
+    normalized = deviations.to_v1_view(_generate.normalize_snapshot(observation, roots=(root,)), data_root)
     return _strip_logs(normalized) if exclude_logs else normalized
 
 
