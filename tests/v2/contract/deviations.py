@@ -9,11 +9,11 @@ because what is projected away here is no longer checked by parity.
 Departures:
 
 * #525 -- SmartTable backs the original invoice up to
-  ``data/temp/invoice_org.json`` and hands that file to the flow and to the v1
+  ``data/logs/invoice_org.json`` and hands that file to the flow and to the v1
   callback as ``invoice_org``. v1 handed over ``data/invoice/invoice.json``,
   which tile 0 overwrites with its merged row invoice. Projected out: the
-  backup's tree entry and digest, the ``invoice_backup(_exists)`` observation
-  and the callback's ``invoice_org`` path. Pinned by ``tests/v2/runner/test_issue_525_smarttable_invoice_org.py``.
+  backup's tree entry and digest (seen only when ``data/logs`` content is
+  observed) and the callback's ``invoice_org`` path. Pinned by ``tests/v2/runner/test_issue_525_smarttable_invoice_org.py``.
 """
 
 from __future__ import annotations
@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Any
 
 #: The run-level invoice backup, as a ``data/``-relative observation path.
-SMARTTABLE_BACKUP = "data/temp/invoice_org.json"
+SMARTTABLE_BACKUP = "data/logs/invoice_org.json"
 
 #: The ``invoice_org`` v1 handed to a SmartTable callback.
 V1_SMARTTABLE_INVOICE_ORG = "data/invoice/invoice.json"
@@ -49,9 +49,6 @@ def to_v1_view(observation: Mapping[str, Any], data_root: Path) -> dict[str, Any
     artifacts = view.get("artifact_sha256")
     if artifacts is not None:
         view["artifact_sha256"] = {path: digest for path, digest in artifacts.items() if path != SMARTTABLE_BACKUP}
-    if view.get("invoice_backup_exists") is True:
-        view["invoice_backup_exists"] = False
-        view["invoice_backup"] = None
     calls = view.get("callback_paths")
     if calls is not None:
         view["callback_paths"] = [_v1_callback_paths(call) for call in calls]

@@ -24,13 +24,21 @@ if TYPE_CHECKING:
     from rdetoolkit.runner.mode_resolver import ModeKind
 
 
-#: Modes that back the original invoice up to ``data/temp/invoice_org.json``.
+#: Modes that back the original invoice up before processing.
 #: ExcelInvoice, RDEFormat and MultiDataTile are the v1 modes of
-#: ``invoicefile._description.backup_invoice_json_files``. SmartTable joined
-#: them in #525, a deliberate departure from v1: its tile 0 writes the merged
-#: row invoice to ``data/invoice/invoice.json``, so without a backup no tile
-#: could read the invoice the run started from. Invoice mode keeps the original.
+#: ``invoicefile._description.backup_invoice_json_files`` and back up to
+#: ``data/temp/invoice_org.json``. SmartTable joined them in #525, a deliberate
+#: departure from v1: its tile 0 writes the merged row invoice to
+#: ``data/invoice/invoice.json``, so without a backup no tile could read the
+#: invoice the run started from. Invoice mode keeps the original.
 _BACKUP_MODES = frozenset({"excelinvoice", "multidatatile", "rdeformat", "smarttable"})
+
+#: Where SmartTable keeps its backup. Not ``data/temp``: SmartTable extracts the
+#: uploaded archive there, so a member named ``invoice_org.json`` would be
+#: overwritten by the backup before the flow reads it or raw publication copies
+#: it. ``data/logs`` is Runner-owned (run report, diagnostics) and is never an
+#: extraction or publication target.
+_SMARTTABLE_BACKUP_PARTS = ("logs", "invoice_org.json")
 
 
 class InvoiceService:
@@ -280,6 +288,8 @@ def invoice_source_for(mode: ModeKind, *, data_root: Path) -> Path:
     Returns:
         Path of the run-level source invoice, whether or not it exists yet.
     """
+    if _mode_value(mode) == "smarttable":
+        return data_root.joinpath(*_SMARTTABLE_BACKUP_PARTS)
     if _mode_value(mode) in _BACKUP_MODES:
         return data_root / "temp" / "invoice_org.json"
     return data_root / "invoice" / "invoice.json"
