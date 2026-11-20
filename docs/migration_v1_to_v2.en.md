@@ -986,6 +986,55 @@ When both a parent folder and its child contain files, ExcelInvoice groups
 the parent first before applying workbook order, preserving the legacy
 traversal and each file's corresponding invoice row.
 
+### ExcelInvoice row-to-folder association
+
+When rows map to archive folders (the workbook has no `data_file_names/name`
+column), v2 applies the same positional rule as v1. Ambiguous identifiers
+are not rejected.
+
+1. Each folder that contains files becomes one group. Groups are ordered by
+   their path components, so a parent folder precedes its children.
+2. For the first file of each group, v2 takes the components of its
+   archive-relative path (folder names and the file name). The group gets the
+   number of the first workbook row, from the top, whose first-column value
+   equals one of those components exactly (case-sensitive). A group with no
+   matching row gets a number after every row.
+3. Groups are stably sorted by that number. Groups with the same number keep
+   the order from step 1.
+4. The sorted groups are assigned to workbook rows from top to bottom.
+
+Step 4 assigns by position. Identifiers only reorder groups, so a row whose
+identifier matches a folder is not guaranteed to receive that folder.
+
+| Identifier case | Result |
+| --- | --- |
+| Each group's path contains exactly one identifier, and no two groups share it | Each row receives its matching folder, also when the workbook rows are reversed |
+| Identifiers are distinct, but one also appears in another group's path (an ancestor folder or a file name) | That group takes the highest row among the identifiers in its path. For `parent/root.txt`, `parent/a/a.txt`, `parent/b/b.txt` with rows `parent`, `b`, `a`, all three groups take row 1 and keep folder order, so row 2 (`b`) receives `a/a.txt` and row 3 (`a`) receives `b/b.txt` |
+| No row matches | Rows receive folders in folder order |
+| The same identifier appears on several rows | Groups matching it share one number and are assigned in folder order |
+| A parent folder name is the identifier | A child's path also contains the parent name, so parent and child share a number. If a row naming the child is higher in the workbook, the child takes that row's number instead |
+| Only some rows match | Matched groups come first and unmatched groups last, then rows are assigned by position. For folders `a` and `b` with rows `missing`, `a`, row 1 receives `a` and row 2 receives `b` |
+
+A folder count that differs from the row count is still input validation
+error 4006, except that a single folder group is shared by every row.
+
+One difference from v1 remains. v1 also matched components of the absolute
+extraction path, so an identifier equal to an extraction directory name such
+as `data` or `temp` matched every group. v2 matches archive-relative paths
+only, and such an identifier counts as unmatched.
+
+Distinct identifiers alone do not guarantee the intended association. Each
+row receives its matching folder only when the first file of every group has
+exactly one workbook identifier among its path components, and no two groups
+share that identifier. To associate rows and folders reliably, place one
+folder per row directly under the archive root without nesting, and write
+that folder name in the row's first column. Keep the folder names different
+from every other folder and file name in the archive. Check the association
+before running with the
+`input_names` and `source_row` of each tile in
+`rdetoolkit run ... --validate-only --explain`. The preview and the run build
+the same association from the same input snapshot.
+
 A header-only SmartTable produces no tiles unless `save_table_file=true`, in
 which case its original table is tile 0. Original-table tiles register the
 table without invoking the flow. These SmartTable indices preserve the RDE
