@@ -19,6 +19,17 @@ class ModeEvidence:
     filename: str
     indicator: str
 
+SelectionPolicy = Literal["legacy", "fixed", "auto"]
+SelectionSource = Literal["registration", "system.extended_mode", "default"]
+
+@dataclass(frozen=True, slots=True)
+class ModeSelection:
+    policy: SelectionPolicy
+    source: SelectionSource
+    supported_modes: tuple[ModeKind, ...]
+    fallback_mode: ModeKind | None
+    def to_dict(self) -> dict[str, Any]: ...
+
 @dataclass(frozen=True, slots=True)
 class ModeDecision:
     configured_mode: ModeKind | None
@@ -26,6 +37,7 @@ class ModeDecision:
     candidates: tuple[ModeKind, ...]
     evidence: tuple[ModeEvidence, ...]
     reason_codes: tuple[str, ...]
+    selection: ModeSelection
     ambiguous: bool = ...
     warning_codes: tuple[int, ...] = ...
     schema_version: str = ...

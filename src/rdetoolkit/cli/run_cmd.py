@@ -263,6 +263,12 @@ def _print_explanation(payload: dict[str, Any]) -> None:
     decision = payload["decision"]
     typer.echo(f"Mode: {decision['chosen_mode']}")
     typer.echo(f"Reasons: {', '.join(decision['reason_codes'])}")
+    selection = decision["selection"]
+    fallback = selection["fallback_mode"] or "-"
+    typer.echo(
+        f"Selection: {selection['policy']} from {selection['source']}"
+        f" (supported: {', '.join(selection['supported_modes'])}; fallback: {fallback})",
+    )
     typer.echo(f"Config source: {payload['config_source']}")
     typer.echo(f"Tiles: {payload['tile_count']} ({payload['iteration_policy']})")
     for tile in payload["tiles"]:

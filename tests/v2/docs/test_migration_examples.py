@@ -192,7 +192,7 @@ def test_every_migration_fence_is_executed__tc_doc_mig_bv_001(doc: Path) -> None
     # When: comparing their stable marker names with this module's executed set
     # GA572's production entry is executed for all outcomes and both languages
     # in test_ga_572_process_exit.test_migration_main_example_executes__ga572_doc.
-    executed = {"legacy-source", "migration-commands", "as-node-bridge", "ga572-main", "load-run-config", "ga603-custom-fields", "ga630-run-program", "read-key-values", "processing-error", "ga631-artifact-logger", "ga623-raw-copy", "template-settings-v1", "template-settings-v2"}
+    executed = {"legacy-source", "migration-commands", "as-node-bridge", "ga572-main", "load-run-config", "ga603-custom-fields", "ga630-run-program", "read-key-values", "processing-error", "ga631-artifact-logger", "ga623-raw-copy", "template-settings-v1", "template-settings-v2", "multi-mode-registration"}
     # Then: every example is explicitly owned by an execution test
     assert set(examples) == executed
 
@@ -267,3 +267,24 @@ def test_template_settings_examples_are_equivalent__624_doc(doc: Path, tmp_path:
     # Then: the documented lookup works and both forms agree
     assert v1.custom["sem"]["magnification_key"] == "Mag"
     assert v1.custom == v2.custom
+
+
+@DOCS
+def test_multi_mode_registration_example_selects_per_input__781_doc(doc: Path, tmp_path: Path) -> None:
+    """781-DOC: the documented policy selects SmartTable or MultiDataTile per upload."""
+    from rdetoolkit.domain.mode_selection import ModeKind, decide_mode
+    from rdetoolkit.runner.config_loader import load_config
+
+    # Given: the example as a tasksupport configuration
+    data = tmp_path / "data"
+    (data / "tasksupport").mkdir(parents=True)
+    (data / "tasksupport" / "rdeconfig.yaml").write_text(_examples(doc)["multi-mode-registration"][1], encoding="utf-8")
+    config = load_config(tmp_path, data_root=data)
+    # When / Then: a SmartTable table selects SmartTable, plain files the fallback
+    inputs = {"smarttable": ("smarttable_rows.csv",), "multidatatile": ("a.tif", "b.tif")}
+    for expected, names in inputs.items():
+        inputdata = tmp_path / expected
+        inputdata.mkdir()
+        for name in names:
+            (inputdata / name).write_text("x", encoding="utf-8")
+        assert decide_mode(config, inputdata).chosen_mode is ModeKind(expected)

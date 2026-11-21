@@ -870,6 +870,38 @@ v1 callback経路は従来のファイル検出優先順位とW1001を維持し�
 同じ競合入力でもv2 flowではカタログ登録済み設定エラーになります。
 設定ファイルがv1形式でも、flowの選択契約はv2です。
 
+### 複数モードに対応するテンプレート
+
+`extended_mode: MultiDataTile`を設定しつつSmartTable登録も受け付けていたv1テンプレートは、
+callbackのファイル検出優先順位に依存していました。v2 flowでは同じ設定のまま
+SmartTable入力を登録すると1005で拒否されます。設定を削除すると、通常の複数ファイル入力が
+Invoiceの1タイルになります。この場合は`system.extended_mode`を削除し、
+`rdeconfig.yaml`または`data/tasksupport/rdeconfig.yaml`の`registration`セクションで
+両方のモードを宣言してください。
+
+<!-- test: multi-mode-registration -->
+```yaml
+registration:
+  selection: auto
+  supported_modes: [multidatatile, smarttable]
+  fallback_mode: multidatatile
+```
+
+SmartTable入力ではテーブル行ごと、それ以外の入力ではファイルごとに1タイルを登録します。
+この方針はv1 callback経路にも適用されます。`main.py`が`config.system.extended_mode`を
+読んでいなければ変更は不要です。この値はMultiDataTileで実行される場合も未設定(`None`)に
+なるため、分岐が必要なら登録入力をもとに判断してください。`selection`を持たない
+トップレベルの`registration:`セクションは、従来どおりテンプレート設定として`custom`に入ります。
+宣言していないExcelInvoice workbookは1009、SmartTableとExcelInvoiceの同時入力は1007、
+`registration`と`system.extended_mode`の併記は1002で拒否します。`run --config`のoverrideで
+一方を指定した場合も同じです。overrideではもう一方をnullにしてください
+(例: `{registration: null, system: {extended_mode: multidatatile}}`)。
+overrideの`registration`はプロジェクトの方針を丸ごと置き換えます。`selection: fixed`と`mode: <名前>`の組み合わせは、`system.extended_mode`の
+明示指定と同じ意味です。ZIPだけではRDEFormatを選択しません。ZIPをRDEFormatで登録するには
+`rdeformat`を`fallback_mode`に指定してください。`rdetoolkit run --validate-only --explain`は
+選択方針を`decision.selection`に出力します。5モードすべての組み合わせと競合の一覧は
+v2 architecture guideの7.1節にあります。
+
 `RDEFormat`という綴りは、設定読込とreproでそのまま保持します。
 互換callbackでは`RDEFormat`はInvoice、`rdeformat`はRDEFormatとして扱われるため、
 両者のconfig digestは異なります。v2 flowでは実行境界で`RDEFormat`を
