@@ -324,7 +324,7 @@ class LegacyCallbackInvoker:
                 status="failed",
                 call_records=recorder.records,
                 outputs=(),
-                error=_failed_error(exc, recorder.records),
+                error=_failed_error(exc, recorder.records, callback_id=callback_flow_id(callback)),
                 datatile_id=datatile_id,
                 stacktrace=traceback.format_exc(),
             )

@@ -190,7 +190,32 @@ def run_tile(
     )
 
 
-def _failed_error(exc: Exception, records: tuple[NodeCallRecord, ...]) -> dict[str, Any]:
+#: Remediation for a plain exception escaping a v1 dataset callback (#783).
+_CALLBACK_FAILURE_REMEDIATION = (
+    "Inspect the chained original exception (__cause__); raise StructuredError "
+    "(or ProcessingError) in the callback to choose the code and message."
+)
+
+
+def _failed_error(
+    exc: Exception,
+    records: tuple[NodeCallRecord, ...],
+    *,
+    callback_id: str | None = None,
+) -> dict[str, Any]:
+    """Return the tile error record for ``exc``.
+
+    Args:
+        exc: Exception that escaped the flow or the v1 dataset callback.
+        records: Call records observed before the failure.
+        callback_id: The v1 dataset callback's flow id when the tile ran one.
+            A plain exception it raises outside any ``@node`` call keeps code
+            3001 but names the callback: the catalogue wording points at a node
+            call and its call-log entry, which the callback does not have.
+
+    Returns:
+        The error record (code, name, message, remediation, call_id).
+    """
     error_def = ERROR_CATALOG[3001]
     failed_record = next((record for record in reversed(records) if record.status == "failed"), None)
     call_id = failed_record.call_id if failed_record is not None else "unknown"
@@ -202,6 +227,17 @@ def _failed_error(exc: Exception, records: tuple[NodeCallRecord, ...]) -> dict[s
         catalog_entry = ERROR_CATALOG.get(code, error_def)
         name = exc.name
         message = exc.message
+    elif failed_record is None and callback_id is not None:
+        return {
+            "code": 3001,
+            "name": error_def.name,
+            "message": (
+                f"Dataset callback {callback_id} failed ({type(exc).__name__}): {exc} "
+                f"Remediation: {_CALLBACK_FAILURE_REMEDIATION}"
+            ),
+            "remediation": _CALLBACK_FAILURE_REMEDIATION,
+            "call_id": call_id,
+        }
     else:
         code = 3001
         catalog_entry = error_def
