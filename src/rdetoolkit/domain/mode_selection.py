@@ -67,18 +67,55 @@ class ModeEvidence:
     indicator: str
 
 
+SelectionPolicy = Literal["legacy", "fixed", "auto"]
+SelectionSource = Literal["registration", "system.extended_mode", "default"]
+
+#: Modes an input file indicates. ZIP input indicates no mode (#781).
+_DETECTABLE = (ModeKind.excelinvoice, ModeKind.smarttable)
+
+
+@dataclass(frozen=True, slots=True)
+class ModeSelection:
+    """The selection contract one decision was made under (#781).
+
+    ``legacy`` is the frozen v1 callback precedence. ``fixed`` uses one
+    requested mode and rejects conflicting input. ``auto`` selects the one
+    supported mode an input file indicates, else ``fallback_mode``. Without a
+    ``registration`` section a v2 flow is ``fixed`` when ``system.extended_mode``
+    is set and ``auto`` over Invoice, ExcelInvoice and SmartTable otherwise.
+    """
+
+    policy: SelectionPolicy
+    source: SelectionSource
+    supported_modes: tuple[ModeKind, ...]
+    fallback_mode: ModeKind | None
+
+    def to_dict(self) -> dict[str, Any]:
+        """Return the JSON-compatible policy description."""
+        return {
+            "policy": self.policy,
+            "source": self.source,
+            "supported_modes": [mode.value for mode in self.supported_modes],
+            "fallback_mode": None if self.fallback_mode is None else self.fallback_mode.value,
+        }
+
+
 @dataclass(frozen=True, slots=True)
 class ModeDecision:
-    """Immutable explanation of configured intent and observed input evidence."""
+    """Immutable explanation of configured intent and observed input evidence.
+
+    Schema version 2 added ``selection``; every version-1 key is unchanged.
+    """
 
     configured_mode: ModeKind | None
     chosen_mode: ModeKind
     candidates: tuple[ModeKind, ...]
     evidence: tuple[ModeEvidence, ...]
     reason_codes: tuple[str, ...]
+    selection: ModeSelection
     ambiguous: bool = False
     warning_codes: tuple[int, ...] = ()
-    schema_version: str = "1"
+    schema_version: str = "2"
 
     def to_dict(self) -> dict[str, Any]:
         """Return a deterministic JSON-compatible representation.
@@ -95,6 +132,7 @@ class ModeDecision:
             "reason_codes": list(self.reason_codes),
             "ambiguous": self.ambiguous,
             "warning_codes": list(self.warning_codes),
+            "selection": self.selection.to_dict(),
         }
 
 
@@ -178,21 +216,44 @@ def _validate_special_archives(mode: ModeKind, inputdata_path: Path) -> None:
         _validate_archive_members(archive)
 
 
-def _select_v2(configured: ModeKind | None, evidence: tuple[ModeEvidence, ...]) -> tuple[ModeKind, str]:
+def _strict_selection(config: RdeConfig) -> tuple[ModeSelection, ModeKind | None]:
+    """Return the declared policy and the fixed mode it requests, if any."""
+    registration = config.registration
+    if registration is not None and registration.selection == "fixed":
+        mode = ModeKind(registration.mode)
+        return ModeSelection("fixed", "registration", (mode,), None), mode
+    if registration is not None:
+        supported = tuple(ModeKind(name) for name in registration.supported_modes or ())
+        return ModeSelection("auto", "registration", supported, ModeKind(registration.fallback_mode)), None
+    if "extended_mode" in config.system.model_fields_set:
+        mode = normalize_mode_name(config.system.extended_mode)
+        return ModeSelection("fixed", "system.extended_mode", (mode,), None), mode
+    return ModeSelection("auto", "default", (ModeKind.invoice, *_DETECTABLE), ModeKind.invoice), None
+
+
+def _select_strict(selection: ModeSelection, fixed: ModeKind | None, evidence: tuple[ModeEvidence, ...]) -> tuple[ModeKind, str]:
     if len(evidence) > 1:
         raise _mode_error(1007, f"Multiple special input files: {', '.join(item.filename for item in evidence)}", evidence=evidence)
     detected = evidence[0].mode if evidence else None
-    _validate_requested_mode(configured, detected, evidence)
-    if configured is not None:
-        return configured, "explicit_mode"
-    return (detected, "unique_file_evidence") if detected is not None else (ModeKind.invoice, "default_invoice")
+    if fixed is not None:
+        _validate_requested_mode(selection, fixed, detected, evidence)
+        return fixed, "explicit_mode"
+    if detected is not None:
+        if detected not in selection.supported_modes:
+            supported = ", ".join(mode.value for mode in selection.supported_modes)
+            reason = f"{evidence[0].filename} indicates {detected.value}, but registration.supported_modes is [{supported}]"
+            raise _mode_error(1009, reason, evidence=evidence)
+        return detected, "unique_file_evidence"
+    fallback = selection.fallback_mode or ModeKind.invoice
+    return fallback, "default_invoice" if selection.source == "default" else "fallback_mode"
 
 
-def _validate_requested_mode(configured: ModeKind | None, detected: ModeKind | None, evidence: tuple[ModeEvidence, ...]) -> None:
-    if configured is not None and detected is not None and configured is not detected:
-        raise _mode_error(1005, f"system.extended_mode={configured.value} conflicts with {evidence[0].filename} ({detected.value})", evidence=evidence)
-    if configured in {ModeKind.smarttable, ModeKind.excelinvoice} and detected is None:
-        raise _mode_error(1008, f"system.extended_mode={configured.value} requires its matching special input file")
+def _validate_requested_mode(selection: ModeSelection, configured: ModeKind, detected: ModeKind | None, evidence: tuple[ModeEvidence, ...]) -> None:
+    field = "registration.mode" if selection.source == "registration" else "system.extended_mode"
+    if detected is not None and configured is not detected:
+        raise _mode_error(1005, f"{field}={configured.value} conflicts with {evidence[0].filename} ({detected.value})", evidence=evidence)
+    if configured in _DETECTABLE and detected is None:
+        raise _mode_error(1008, f"{field}={configured.value} requires its matching special input file")
 
 
 def _legacy_choice(raw_mode: str, evidence: tuple[ModeEvidence, ...]) -> ModeKind:
@@ -211,6 +272,11 @@ def _candidate_modes(configured: ModeKind | None, chosen: ModeKind, evidence: tu
 def decide_mode(config: RdeConfig, inputdata_path: Path, *, contract: Literal["v1", "v2"] = "v2") -> ModeDecision:
     """Select a mode from a read-only input snapshot.
 
+    A ``registration`` section is an explicit opt-in, so it applies to both
+    contracts. Without it, the callback contract keeps the frozen v1
+    precedence (SmartTable > ExcelInvoice > configured mode > Invoice) and its
+    W1001 warning.
+
     Args:
         config: Effective configuration, including its explicitly set fields.
         inputdata_path: Directory to inspect without extracting or writing.
@@ -220,23 +286,29 @@ def decide_mode(config: RdeConfig, inputdata_path: Path, *, contract: Literal["v
         Immutable decision with evidence, candidate modes, and warning codes.
 
     Raises:
-        RdeConfigError: For invalid names, conflicts, ambiguity, or missing inputs.
+        RdeConfigError: For invalid names, conflicts, ambiguity, unsupported
+            detected modes, or missing inputs.
     """
+    evidence = _input_evidence(inputdata_path)
+    if contract == "v1" and config.registration is None:
+        return _decide_legacy(config, evidence)
+    selection, configured = _strict_selection(config)
+    chosen, reason = _select_strict(selection, configured, evidence)
+    _validate_selected_inputs(chosen, inputdata_path)
+    return ModeDecision(configured, chosen, _candidate_modes(configured, chosen, evidence), evidence, (reason,), selection, len(evidence) > 1)
+
+
+def _decide_legacy(config: RdeConfig, evidence: tuple[ModeEvidence, ...]) -> ModeDecision:
     explicit = "extended_mode" in config.system.model_fields_set
     raw_mode = config.system.extended_mode
-    evidence = _input_evidence(inputdata_path)
-    if contract == "v1":
-        requested = _legacy_choice(raw_mode, ())
-        configured = requested if explicit else None
-        chosen = _legacy_choice(raw_mode, evidence)
-        warnings = (1001,) if explicit and chosen is not requested else ()
-        reason = "legacy_file_override" if warnings else "legacy_precedence"
-    else:
-        configured = normalize_mode_name(raw_mode) if explicit else None
-        chosen, reason = _select_v2(configured, evidence)
-        _validate_selected_inputs(chosen, inputdata_path)
-        warnings = ()
-    return ModeDecision(configured, chosen, _candidate_modes(configured, chosen, evidence), evidence, (reason,), len(evidence) > 1, warnings)
+    requested = _legacy_choice(raw_mode, ())
+    configured = requested if explicit else None
+    chosen = _legacy_choice(raw_mode, evidence)
+    warnings = (1001,) if explicit and chosen is not requested else ()
+    reason = "legacy_file_override" if warnings else "legacy_precedence"
+    supported = tuple(dict.fromkeys((ModeKind.smarttable, ModeKind.excelinvoice, requested)))
+    selection = ModeSelection("legacy", "system.extended_mode" if explicit else "default", supported, requested)
+    return ModeDecision(configured, chosen, _candidate_modes(configured, chosen, evidence), evidence, (reason,), selection, len(evidence) > 1, warnings)
 
 
 def _validate_selected_inputs(mode: ModeKind, inputdata_path: Path) -> None:

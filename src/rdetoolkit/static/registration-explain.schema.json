@@ -230,7 +230,10 @@
       "additionalProperties": false,
       "properties": {
         "schema_version": {
-          "const": "1"
+          "enum": [
+            "1",
+            "2"
+          ]
         },
         "configured_mode": {
           "anyOf": [
@@ -312,6 +315,9 @@
           "items": {
             "type": "integer"
           }
+        },
+        "selection": {
+          "$ref": "#/$defs/selection"
         }
       },
       "required": [
@@ -323,6 +329,79 @@
         "reason_codes",
         "ambiguous",
         "warning_codes"
+      ],
+      "if": {
+        "properties": {
+          "schema_version": {
+            "const": "2"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "selection"
+        ]
+      },
+      "else": {
+        "not": {
+          "required": [
+            "selection"
+          ]
+        }
+      }
+    },
+    "selection": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "policy": {
+          "enum": [
+            "legacy",
+            "fixed",
+            "auto"
+          ]
+        },
+        "source": {
+          "enum": [
+            "registration",
+            "system.extended_mode",
+            "default"
+          ]
+        },
+        "supported_modes": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "invoice",
+              "multidatatile",
+              "smarttable",
+              "excelinvoice",
+              "rdeformat"
+            ]
+          }
+        },
+        "fallback_mode": {
+          "anyOf": [
+            {
+              "enum": [
+                "invoice",
+                "multidatatile",
+                "smarttable",
+                "excelinvoice",
+                "rdeformat"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "policy",
+        "source",
+        "supported_modes",
+        "fallback_mode"
       ]
     },
     "tile": {

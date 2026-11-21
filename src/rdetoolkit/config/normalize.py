@@ -28,6 +28,11 @@ else:
 ConfigOrigin = Literal["v1", "v2"]
 
 _V1_TOP_LEVEL_KEYS = frozenset({"system", "multidata_tile", "smarttable", "traceback", "custom"})
+
+
+def _is_registration_policy(value: object) -> bool:
+    """Tell the #781 policy from a v1 template section that is also named ``registration``."""
+    return isinstance(value, Mapping) and "selection" in value
 _SYSTEM_KEYS = (
     "extended_mode",
     "save_raw",
@@ -177,6 +182,13 @@ class ConfigNormalizer:
         if "order" in multidata_tile:
             result["multidata_tile"] = {"order": copy.deepcopy(multidata_tile["order"])}
 
+        # The v1 loader keeps unknown top-level sections as extras, so the
+        # registration policy a tasksupport rdeconfig.yaml declares (#781)
+        # reaches the Runner. A template section of the same name without
+        # ``selection`` stays custom["registration"], as before #781.
+        if _is_registration_policy(data.get("registration")):
+            result["registration"] = copy.deepcopy(data["registration"])
+
         # ``traceback.*`` is formatter configuration for the v1 entry's stderr
         # traceback, not Runner configuration: it is carried out of band (the
         # v1 ``Config`` reaches ``workflows._run_callback_entry`` unchanged) and
@@ -221,7 +233,7 @@ def _legacy_custom(data: Mapping[str, Any]) -> dict[str, Any]:
     """
     custom: dict[str, Any] = {}
     for key, value in data.items():
-        if key in _V1_TOP_LEVEL_KEYS:
+        if key in _V1_TOP_LEVEL_KEYS or (key == "registration" and _is_registration_policy(value)):
             continue
         message = _legacy_key_warning(key, value)
         if message is not None:
@@ -346,6 +358,8 @@ def _preserve_magic_omission(data: dict[str, Any], source: Config) -> None:
 
 def _canonical_model_data(source: RdeConfig) -> dict[str, Any]:
     data = source.model_dump()
+    if source.registration is None:
+        data.pop("registration")
     if "extended_mode" not in source.system.model_fields_set:
         data["system"].pop("extended_mode", None)
     if "magic_variable" not in source.system.model_fields_set:

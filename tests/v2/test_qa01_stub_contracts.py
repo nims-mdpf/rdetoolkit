@@ -71,7 +71,10 @@ INVENTORY: dict[str, frozenset[str]] = {
         "ResolutionPreview", "preview_invoice", "resolve_invoice",
     }),
     "rdetoolkit.domain.magic_policy": frozenset({"options_from_config"}),
-    "rdetoolkit.domain.mode_selection": frozenset({"ModeDecision", "ModeEvidence", "ModeKind", "decide_mode", "normalize_mode_name"}),
+    "rdetoolkit.domain.mode_selection": frozenset({
+        "ModeDecision", "ModeEvidence", "ModeKind", "ModeSelection", "SelectionPolicy", "SelectionSource", "decide_mode",
+        "normalize_mode_name",
+    }),
     "rdetoolkit.runner.mode_resolver": frozenset({"ModeDecision", "ModeKind", "resolve_mode", "resolve_mode_decision"}),
     "rdetoolkit.runner.preview": frozenset({"MagicPreview", "MagicTilePreview", "PlannedTile", "RegistrationPreview", "preview_registration"}),
     "rdetoolkit.modes.stages": frozenset({
@@ -294,7 +297,7 @@ def test_strict_consumer_runs__tc_736_ep_6(tmp_path: Path) -> None:
     result = subprocess.run([sys.executable, str(consumer), str(root)], cwd=tmp_path, capture_output=True, text=True, check=False)  # noqa: S603
     # Then: the runtime values have the documented shape
     assert result.returncode == 0, result.stderr
-    assert result.stdout.split() == ["B-1", "resolved", "invoice", "0", "invoice", "1", "1"]
+    assert result.stdout.split() == ["B-1", "resolved", "invoice", "0", "invoice", "1", "2"]
 
 
 @pytest.mark.parametrize(("source", "diagnostic"), [

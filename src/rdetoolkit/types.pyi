@@ -148,6 +148,15 @@ class V2MultiDataTileSettings(BaseModel):
     model_config: ClassVar[ConfigDict]
     order: Literal["name", "filesystem"] = ...
 
+RegistrationModeName = Literal["invoice", "excelinvoice", "multidatatile", "smarttable", "rdeformat"]
+
+class V2RegistrationSettings(BaseModel):
+    model_config: ClassVar[ConfigDict]
+    selection: Literal["auto", "fixed"]
+    mode: RegistrationModeName | None = ...
+    supported_modes: list[RegistrationModeName] | None = ...
+    fallback_mode: RegistrationModeName | None = ...
+
 
 class RdeConfig(BaseModel):
     model_config: ClassVar[ConfigDict]
@@ -157,6 +166,7 @@ class RdeConfig(BaseModel):
     custom: dict[str, Any] = Field(default_factory=dict)
     smarttable: V2SmartTableSettings = Field(default_factory=V2SmartTableSettings)
     multidata_tile: V2MultiDataTileSettings = Field(default_factory=V2MultiDataTileSettings)
+    registration: V2RegistrationSettings | None = ...
 
 def _require_simple_filename(filename: str) -> None: ...
 def _build_output_context(

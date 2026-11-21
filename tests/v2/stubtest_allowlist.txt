@@ -13,6 +13,7 @@ rdetoolkit\.graph\.spec\.Origin
 rdetoolkit\.graph\.result\.ArtifactRole
 rdetoolkit\.graph\.legend_policy\.(LegendPolicy|ResolvedLegendPolicy)
 rdetoolkit\.graph\.readers\.base\.ColumnSource
+rdetoolkit\.domain\.mode_selection\.(SelectionPolicy|SelectionSource)
 
 # Module internals that are not part of the typed surface.
 rdetoolkit\.graph\.renderers\.matplotlib_renderer\.(CENTER_POSITION|DEFAULT_OUTSIDE_LEGEND_NCOL|LEGEND_RIGHT_THRESHOLD|OUTSIDE_LEGEND_MARGIN_INCHES|TEXT_Y_THRESHOLD)

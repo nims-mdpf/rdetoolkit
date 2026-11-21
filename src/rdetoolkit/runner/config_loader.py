@@ -85,7 +85,12 @@ def load_config(
     # the effective values are unchanged.
     config_data = discovered.model_dump(exclude_unset=True)
     if overrides:
-        config_data = _deep_merge(config_data, dict(overrides))
+        overlay = dict(overrides)
+        if "registration" in overlay:
+            # A policy is one decision: an override replaces it whole, so
+            # switching auto -> fixed does not inherit supported_modes (#781).
+            config_data.pop("registration", None)
+        config_data = _deep_merge(config_data, overlay)
     return normalizer.normalize(config_data, root=root, origin="v2")
 
 
@@ -132,6 +137,9 @@ def config_for_replay(config: RdeConfig, *, compact: bool = False) -> dict[str, 
         Fresh JSON-compatible settings preserving explicit mode and magic flags.
     """
     data = config.model_dump(mode="json", exclude_defaults=compact)
+    if config.registration is None:
+        # Absent keeps every pre-#781 digest; a declared policy is part of the identity.
+        data.pop("registration", None)
     for field in ("extended_mode", "magic_variable"):
         if field in config.system.model_fields_set:
             data.setdefault("system", {})[field] = getattr(config.system, field)

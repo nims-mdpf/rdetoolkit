@@ -389,10 +389,73 @@ class V2MultiDataTileSettings(BaseModel):
     order: Literal["name", "filesystem"] = "name"
 
 
+RegistrationModeName = Literal["invoice", "excelinvoice", "multidatatile", "smarttable", "rdeformat"]
+
+#: Modes whose own input file (``smarttable_*`` / ``*_excel_invoice``) selects them.
+_DETECTABLE_MODES = frozenset({"smarttable", "excelinvoice"})
+
+
+class V2RegistrationSettings(BaseModel):
+    """Declared registration-mode selection policy of one template (#781).
+
+    ``selection: fixed`` requests exactly ``mode``. ``selection: auto`` selects
+    the one mode a SmartTable or ExcelInvoice input file indicates, when that
+    mode is in ``supported_modes``, and ``fallback_mode`` when no such file is
+    present. Every supported mode must be reachable: a detectable mode, or the
+    fallback. ZIP input never indicates RDEFormat, so RDEFormat is reachable
+    only as the fallback or a fixed mode.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    selection: Literal["auto", "fixed"]
+    mode: RegistrationModeName | None = None
+    supported_modes: list[RegistrationModeName] | None = None
+    fallback_mode: RegistrationModeName | None = None
+
+    @model_validator(mode="after")
+    def _check_policy(self) -> V2RegistrationSettings:
+        problem = self._fixed_problem() if self.selection == "fixed" else self._auto_problem()
+        if problem is not None:
+            raise _registration_error(problem)
+        return self
+
+    def _fixed_problem(self) -> str | None:
+        if self.mode is None:
+            return "selection: fixed requires registration.mode"
+        if self.supported_modes is not None or self.fallback_mode is not None:
+            return "selection: fixed takes only registration.mode; remove supported_modes and fallback_mode"
+        return None
+
+    def _auto_problem(self) -> str | None:
+        supported = self.supported_modes or []
+        fallback = self.fallback_mode
+        unreachable = ", ".join(mode for mode in supported if mode not in _DETECTABLE_MODES and mode != fallback)
+        rules = (
+            (self.mode is not None, "selection: auto does not take registration.mode; use fallback_mode"),
+            (not supported, "selection: auto requires a non-empty registration.supported_modes"),
+            (len(set(supported)) != len(supported), "registration.supported_modes lists a mode more than once"),
+            (fallback is None, "selection: auto requires registration.fallback_mode"),
+            (fallback not in supported, f"registration.fallback_mode={fallback} is not in registration.supported_modes"),
+            (fallback in _DETECTABLE_MODES, f"registration.fallback_mode={fallback} needs its own input file and cannot be a fallback"),
+            (bool(unreachable), f"registration.supported_modes contains {unreachable}, which no input file selects and which is not the fallback_mode"),
+        )
+        return next((message for broken, message in rules if broken), None)
+
+
+def _registration_error(reason: str) -> Exception:
+    from rdetoolkit.errors import ERROR_CATALOG, RdeConfigError  # noqa: PLC0415 -- keep the type layer free of import cycles
+
+    definition = ERROR_CATALOG[1002]
+    return RdeConfigError(code=1002, message=f"{definition.message_template.format(reason=reason)} Remediation: {definition.remediation}")
+
+
 class RdeConfig(BaseModel):
     """Strict v2 Runner configuration.
 
     This model is separate from the v1 ``models.config.Config`` contract.
+    ``registration`` and an explicit ``system.extended_mode`` are mutually
+    exclusive: neither silently overrides the other.
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -403,6 +466,17 @@ class RdeConfig(BaseModel):
     custom: dict[str, Any] = Field(default_factory=dict)
     smarttable: V2SmartTableSettings = Field(default_factory=V2SmartTableSettings)
     multidata_tile: V2MultiDataTileSettings = Field(default_factory=V2MultiDataTileSettings)
+    registration: V2RegistrationSettings | None = None
+
+    @model_validator(mode="after")
+    def _single_mode_source(self) -> RdeConfig:
+        if self.registration is not None and "extended_mode" in self.system.model_fields_set:
+            reason = (
+                "registration and system.extended_mode both declare the registration mode; keep only one. "
+                "When one comes from a configuration override, set the other to null in the same override"
+            )
+            raise _registration_error(reason)
+        return self
 
 
 def _build_output_context(

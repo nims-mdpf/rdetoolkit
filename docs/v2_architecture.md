@@ -95,6 +95,72 @@ The execution target selects this policy, independently of the config's file
 format. This intentional separation prevents a v2 flow from silently changing
 a user's requested registration boundaries while retaining v1 behavior.
 
+### 7.1 Multi-mode templates (`registration`, #781)
+
+A template that processes more than one registration mode declares the modes
+it supports instead of a single `system.extended_mode`:
+
+```yaml
+registration:
+  selection: auto
+  supported_modes: [multidatatile, smarttable]
+  fallback_mode: multidatatile
+```
+
+`selection: auto` selects the mode that a single SmartTable or ExcelInvoice
+input file indicates, if that mode is supported, and `fallback_mode` when no
+such file exists. `selection: fixed` with `registration.mode: <name>` requests
+exactly one mode and has the same conflict rules as an explicit
+`system.extended_mode`. The section accepts canonical names only. It applies to
+both execution targets because it is an explicit opt-in. Without it, nothing
+changes: a v2 flow treats an explicit `system.extended_mode` as fixed and an
+omitted one as auto over Invoice, ExcelInvoice, and SmartTable with an Invoice
+fallback, and the callback target keeps the frozen v1 precedence.
+
+These declarations are rejected while the configuration loads, with 1002:
+
+- `registration` next to an explicit `system.extended_mode`, because neither may override the other.
+- An auto policy without a non-empty, duplicate-free `supported_modes`, or whose `fallback_mode` is missing or not one of them.
+- `smarttable` or `excelinvoice` as the fallback, because both need their own input file.
+- A supported mode that no input selects and that is not the fallback. Only SmartTable and ExcelInvoice have indicator files. Invoice, MultiDataTile, and RDEFormat are reachable only as the fallback, so a ZIP never implies RDEFormat.
+
+Selection runs once per run and stays read-only. More than one special
+indicator fails with 1007. A detected mode that is not supported fails with
+1009 (`UnsupportedModeInput`) before any output is written. The selected mode's
+input requirements are then checked as for a fixed mode (1007, 1008). The
+`ModeDecision` (schema version 2) adds `selection`, which records the policy,
+its source (`registration`, `system.extended_mode`, or `default`), the
+supported modes, and the fallback. Every version-1 key keeps its meaning. The
+explain JSON schema accepts decision versions 1 and 2. Config digests leave out
+an absent `registration`, so the digests of existing configurations do not
+change. A declared policy is part of the digest and of the reproduction YAML.
+The v1 configuration model keeps unknown top-level sections, so a
+`registration` section in `data/tasksupport/rdeconfig.yaml` reaches the Runner
+instead of becoming `custom.registration`. A section of that name without
+`selection` keeps its earlier meaning as template settings. An override's
+`registration` replaces the project's policy whole instead of merging into it.
+Under a policy, a v1 callback sees `config.system.extended_mode` as unset.
+
+Five-mode pair matrix for `selection: auto`. "Indicator" is the SmartTable
+(`smarttable_*.csv|tsv|xlsx`) or ExcelInvoice (`*_excel_invoice.xls|xlsx`) file.
+
+| Supported pair | Declarable | Indicators in one upload | Resolved mode | Fails |
+| --- | --- | --- | --- | --- |
+| invoice + multidatatile | No: one of them is unreachable | none | — | 1002 at load |
+| invoice + rdeformat | No: one of them is unreachable | none | — | 1002 at load |
+| multidatatile + rdeformat | No: one of them is unreachable | none | — | 1002 at load |
+| excelinvoice + smarttable | No: there is no fallback | — | — | 1002 at load |
+| invoice + smarttable | Yes, fallback invoice | at most one | SmartTable with its file, else Invoice | ExcelInvoice file 1009; both files 1007 |
+| invoice + excelinvoice | Yes, fallback invoice | at most one | ExcelInvoice with its workbook, else Invoice | SmartTable file 1009; both files 1007 |
+| multidatatile + smarttable | Yes, fallback multidatatile | at most one | SmartTable with its file, else MultiDataTile | ExcelInvoice file 1009; both files 1007 |
+| multidatatile + excelinvoice | Yes, fallback multidatatile | at most one | ExcelInvoice with its workbook, else MultiDataTile | SmartTable file 1009; both files 1007 |
+| rdeformat + smarttable | Yes, fallback rdeformat | at most one | SmartTable with its file, else RDEFormat (needs one ZIP, 1008) | ExcelInvoice file 1009; both files 1007 |
+| rdeformat + excelinvoice | Yes, fallback rdeformat | at most one | ExcelInvoice with its workbook, else RDEFormat (needs one ZIP, 1008) | SmartTable file 1009; both files 1007 |
+
+Larger sets follow the same rule: at most one non-detectable mode, which is the
+fallback. Two SmartTable tables or two ExcelInvoice workbooks fail with 1007
+under every policy. One run never executes more than one mode.
+
 `rdetoolkit run --validate-only --explain` inspects the current input snapshot.
 It does not invoke preparation or flow functions, create output directories,
 or publish events, reports, or registration artifacts. JSON explanation uses

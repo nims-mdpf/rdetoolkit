@@ -16,6 +16,7 @@ Authority: `local/develop/v2/Design.md` §9.
 | 1006 | InvalidArtifactStagePlan | Invalid artifact-stage plan: {reason} | Use each supported stage at most once: thumbnail, structured, magic, description. Place description after every other selected stage. |
 | 1007 | AmbiguousModeInput | Registration input is ambiguous: {reason} | Provide one special table/workbook and an unambiguous archive with unique safe member names. |
 | 1008 | ModeInputMissing | Registration mode input is missing or unreadable: {reason} | Provide the matching SmartTable, Excel invoice, or RDEFormat ZIP input, then validate again. |
+| 1009 | UnsupportedModeInput | Input indicates a registration mode the template does not support: {reason} | Remove the special input file, or add its mode to registration.supported_modes if the template processes it. |
 | 2001 | DuplicateNodeId | Duplicate node id registered: {node_id} | Rename one of the functions or move it to another module (the node id is '{module}.{qualname}'), or pass an explicit id via @node(id=...). |
 | 2002 | ~~ReservedParamMismatch~~ (retired) | Reserved flow parameter has an incompatible type: {param_name} | Retired by design revision R1: DI is type-based and parameter names are advisory only, so a name mismatch is no longer an error. This number must not be reused. |
 | 2003 | UnresolvableFlowParam | Could not resolve flow parameter: {param_name} | Annotate the parameter with one of the reserved types (InputPaths, OutputContext, RdeConfig, InvoiceData, IterationInfo) or give it a default value. |

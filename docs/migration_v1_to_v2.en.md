@@ -947,6 +947,41 @@ conflicting setting. A v2 flow raises a catalogued configuration error for
 the same conflict. Loading a legacy-format config does not turn a flow into
 a callback compatibility run.
 
+### Templates that support more than one mode
+
+A v1 template that sets `extended_mode: MultiDataTile` and also accepts
+SmartTable uploads relied on the callback's file-detection priority. As a v2
+flow, the same setting rejects every SmartTable upload with 1005. Removing the
+setting makes ordinary multi-file uploads a single Invoice tile instead. Declare
+both modes in the `registration` section instead, in `rdeconfig.yaml` or
+`data/tasksupport/rdeconfig.yaml`, and remove `system.extended_mode`:
+
+<!-- test: multi-mode-registration -->
+```yaml
+registration:
+  selection: auto
+  supported_modes: [multidatatile, smarttable]
+  fallback_mode: multidatatile
+```
+
+A SmartTable upload then registers one tile per table row, and any other upload
+registers one tile per file. The policy applies to the v1 callback entry as well,
+so `main.py` needs no change unless it reads `config.system.extended_mode`. That
+value is now unset (`None`) even when the run resolves to MultiDataTile, so
+branch on the registration inputs instead. A top-level `registration:` section
+without `selection` is still template settings under `custom`. An ExcelInvoice workbook
+fails with 1009 because the template does not list it. A SmartTable table next
+to an ExcelInvoice workbook fails with 1007. Keeping both `registration` and
+`system.extended_mode` fails with 1002, also when one of them comes from a
+`run --config` override. Such an override sets the other to null, for example
+`{registration: null, system: {extended_mode: multidatatile}}`. An overriding
+`registration` replaces the project's policy whole. `selection: fixed` with
+`mode: <name>` is the same as an explicit `system.extended_mode`. A ZIP never
+selects RDEFormat on its own. List `rdeformat` as the `fallback_mode` to
+register a ZIP with RDEFormat. `rdetoolkit run --validate-only --explain`
+reports the policy under `decision.selection`. The complete five-mode
+compatibility and conflict matrix is in the v2 architecture guide, section 7.1.
+
 Configuration loading and reproduction retain the exact spelling `RDEFormat`.
 The callback contract interprets it as Invoice, while `rdeformat` selects
 RDEFormat, so their config digests differ. A v2 flow canonicalizes `RDEFormat`

@@ -906,6 +906,11 @@ ERROR_CATALOG[1008] = ErrorDef(
     message_template="Registration mode input is missing or unreadable: {reason}",
     remediation="Provide the matching SmartTable, Excel invoice, or RDEFormat ZIP input, then validate again.",
 )
+ERROR_CATALOG[1009] = ErrorDef(
+    name="UnsupportedModeInput",
+    message_template="Input indicates a registration mode the template does not support: {reason}",
+    remediation="Remove the special input file, or add its mode to registration.supported_modes if the template processes it.",
+)
 
 
 ERROR_CATALOG[1006] = ErrorDef(
