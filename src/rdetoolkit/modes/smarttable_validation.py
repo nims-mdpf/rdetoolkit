@@ -19,6 +19,10 @@ _BASIC_FIELDS = frozenset({"dataName", "dateSubmitted", "dataOwnerId", "instrume
 _SAMPLE_FIELDS = frozenset({"names", "sampleId", "ownerId", "composition", "referenceUrl", "description"})
 _ATTRIBUTE_PARTS = 2
 _TABLE_SUFFIXES = frozenset({".csv", ".tsv", ".xlsx"})
+#: Destinations the schema does not declare. Like v1, which skips a blank cell
+#: before it looks its column up, these are reported only for a column that
+#: some data row would write to (#782).
+_VALUE_GATED_REASONS = frozenset({"unknown_custom_field", "unknown_invoice_field"})
 
 
 @dataclass(frozen=True, slots=True)
@@ -58,7 +62,9 @@ def validate_smarttable_mapping(
 
     Custom and metadata values use their existing distinct SmartTable casters.
     Blank cells retain the builder's clearing and omission behavior. Descriptive
-    columns without mapping syntax are ignored as in legacy processing.
+    columns without mapping syntax are ignored as in legacy processing, and so
+    is a ``custom/``, ``basic/`` or ``sample/`` column the schema does not
+    declare while every cell in it is blank.
 
     Args:
         table_path: Original CSV, TSV, or XLSX SmartTable.
@@ -77,10 +83,11 @@ def validate_smarttable_mapping(
         return (_diagnostic(2, "", "invoice schema object", "invalid_invoice_schema"),)
     headers = _mapping_headers(table)
     metadata = _read_optional_json(metadata_def_path) if any(name.startswith("meta/") for name in headers) else None
-    contracts, diagnostics = _validate_headers(headers, schema, metadata)
+    rows = table.iloc[1:]
+    contracts, diagnostics = _validate_headers(headers, schema, metadata, _blank_columns(rows))
     if diagnostics:
         return tuple(diagnostics)
-    return tuple(_validate_cells(table.iloc[1:], contracts))
+    return tuple(_validate_cells(rows, contracts))
 
 
 def ensure_smarttable_valid(inputdata_path: Path, tasksupport_path: Path) -> None:
@@ -125,6 +132,14 @@ def _mapping_headers(table: pd.DataFrame) -> list[str]:
     return ["" if pd.isna(value) else str(value) for value in table.iloc[0]]
 
 
+def _is_blank(value: Any) -> bool:
+    return bool(pd.isna(value)) or str(value).strip() == ""
+
+
+def _blank_columns(rows: pd.DataFrame) -> frozenset[int]:
+    return frozenset(index for index in range(rows.shape[1]) if all(_is_blank(value) for value in rows.iloc[:, index]))
+
+
 def _read_optional_json(path: Path) -> Mapping[str, Any] | None:
     try:
         data = readf_json(path)
@@ -139,6 +154,7 @@ def _validate_headers(
     headers: list[str],
     schema: Mapping[str, Any],
     metadata: Mapping[str, Any] | None,
+    blank_columns: frozenset[int],
 ) -> tuple[list[_ColumnContract], list[SmartTableDiagnostic]]:
     seen: set[str] = set()
     contracts: list[_ColumnContract] = []
@@ -151,7 +167,7 @@ def _validate_headers(
             continue
         seen.add(name)
         contract, diagnostic = _header_contract(index, name, schema, metadata)
-        if diagnostic is not None:
+        if diagnostic is not None and not (diagnostic.reason in _VALUE_GATED_REASONS and index in blank_columns):
             diagnostics.append(diagnostic)
         if contract is not None:
             contracts.append(contract)
@@ -264,7 +280,7 @@ def _validate_cells(table: pd.DataFrame, contracts: list[_ColumnContract]) -> li
     for row_number, values in enumerate(table.itertuples(index=False, name=None), start=3):
         for contract in contracts:
             value = values[contract.index]
-            if pd.isna(value) or str(value).strip() == "":
+            if _is_blank(value):
                 continue
             diagnostic = _cell_diagnostic(str(value), row_number, contract)
             if diagnostic is not None:
