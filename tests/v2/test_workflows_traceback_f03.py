@@ -88,12 +88,13 @@ _ALL_TRACEBACK_KEYS: dict[str, Any] = {
 
 _CALLBACK_MESSAGE = "boom from callback"
 
-#: rc1's ``job.failed`` for a plain callback exception -- unchanged by F03.
+#: ``job.failed`` for a plain callback exception -- unchanged by F03. The
+#: message names the callback instead of a node call since #783.
 _RC1_JOB_FAILED = (
     "ErrorCode=3001\n"
-    "ErrorMessage=Node execution failed for call unknown: boom from callback Remediation: "
-    "Inspect the chained original exception (__cause__) and the call-log entry for the failing call; "
-    "fix the node implementation or its inputs. Nodes are plain functions - reproduce directly with pytest.\n"
+    f"ErrorMessage=Dataset callback {__name__}._failing failed (ValueError): boom from callback Remediation: "
+    "Inspect the chained original exception (__cause__); raise StructuredError (or ProcessingError) "
+    "in the callback to choose the code and message.\n"
 )
 
 #: Stable v1.7.1 formatter markers (``errors.handle_exception``).

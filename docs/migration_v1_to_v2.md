@@ -724,7 +724,7 @@ invoice シート自体がないブックについては既存のエラー契約
 | ケース | v1 | v2 |
 |---|---|---|
 | コールバックが `StructuredError(msg, ecode)` を送出 | `job.failed` に `ecode` と `msg` | 同じ |
-| コールバックが素の例外を送出 | `ErrorCode=999`、`Unexpected error in <mode> mode: ...` | `ErrorCode=3001`。メッセージはエラーカタログ E3001 の文で、ユーザーの例外メッセージを含みます |
+| コールバックが素の例外を送出 | `ErrorCode=999`、`Unexpected error in <mode> mode: ...` | `ErrorCode=3001`。メッセージはコールバック名と例外の型を示し、ユーザーの例外メッセージを含みます(例: `Dataset callback main.dataset failed (BadZipFile): File is not a zip file Remediation: ...`)。コールバックから呼んだノード内の失敗は、そのノード呼び出しの id で報告されます |
 | コールバック失敗時の stderr トレースバック(`traceback:` 設定 / `TRACE_*`) | `errors.handle_exception` が `Config.traceback`、なければ `TRACE_*`、なければ python 形式で `compact` / `python` / `duplex` を出力 | v1 コールバック入口では同じフォーマッタ・同じ設定・同じ優先順で出力し、設定は警告を出しません。素の例外では、最外の例外が `StructuredError: Unexpected error in <mode> mode: ...` ではなく E3001 メッセージの `TileExecutionError`(ユーザーの例外から連鎖)になります。`run()` 自体を `except` ブロックの中から呼んだ場合も、例外の連鎖は Python が記録したとおりに表示します(1.7.1 はこの場合にコールバック自身の暗黙の連鎖を失っていました)。コールバック外の失敗(設定、invoice 検証、出力の検証など)でも、`job.failed` が報告するエラーのトレースバックを同じ形式で出力します。flow 入口(`run(flow=...)`、`rdetoolkit run <module>:<flow>`)はこのトレースバックを出さず、プロジェクト直下の v2 形式 `rdeconfig.yaml` では `traceback:` はエラー(E1002)です |
 | `invoice.schema.json` 自体が不正で、コールバックも失敗 | コールバック側のエラーコード(検証はコールバックの後) | `ErrorCode=4001`(スキーマ検証の理由付き)。コールバックは呼ばれません |
 | invoice の必須項目を行やコールバックで補完 | 行の反映・コールバックの後に検証 | ExcelInvoice / SmartTable は両入口とも元の invoice の内容検証を省略し、行反映後のタイルを検証します。v1 コールバック入口では全モードで内容検証を遅らせるため、コールバックで必須項目を補完できます。ファイルの存在確認(4003)とスキーマ自体の検証(4001)は事前に行います |
